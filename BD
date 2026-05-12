@@ -1,0 +1,188 @@
+-- =========================================
+-- CREAR BASE DE DATOS
+-- =========================================
+
+CREATE DATABASE prestaya;
+
+USE prestaya;
+
+-- =========================================
+-- TABLA USUARIOS
+-- =========================================
+
+CREATE TABLE usuarios (
+
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    username VARCHAR(100) NOT NULL UNIQUE,
+
+    password VARCHAR(255) NOT NULL,
+
+    rol ENUM('ADMIN', 'CLIENTE') NOT NULL
+
+);
+
+-- =========================================
+-- TABLA CLIENTES
+-- =========================================
+
+CREATE TABLE clientes (
+
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    nombre VARCHAR(150) NOT NULL,
+
+    dni VARCHAR(20) NOT NULL UNIQUE,
+
+    correo VARCHAR(150),
+
+    telefono VARCHAR(20),
+
+    estado VARCHAR(50)
+
+);
+
+-- =========================================
+-- TABLA PRESTAMOS
+-- =========================================
+
+CREATE TABLE prestamos (
+
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    monto DOUBLE NOT NULL,
+
+    garantia VARCHAR(255),
+
+    estado VARCHAR(50),
+
+    cliente_id BIGINT,
+
+    CONSTRAINT fk_prestamo_cliente
+        FOREIGN KEY (cliente_id)
+        REFERENCES clientes(id)
+        ON DELETE SET NULL
+
+);
+
+-- =========================================
+-- TABLA GARANTIAS
+-- =========================================
+
+CREATE TABLE garantias (
+
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    tipo VARCHAR(100),
+
+    identificador VARCHAR(255),
+
+    valor_estimado DOUBLE,
+
+    estado VARCHAR(50),
+
+    prestamo_id BIGINT,
+
+    CONSTRAINT fk_garantia_prestamo
+        FOREIGN KEY (prestamo_id)
+        REFERENCES prestamos(id)
+        ON DELETE SET NULL
+
+);
+
+-- =========================================
+-- USUARIO ADMIN
+-- USER: admin
+-- PASS: admin123
+-- =========================================
+
+INSERT INTO usuarios (
+    username,
+    password,
+    rol
+)
+VALUES (
+    'admin',
+
+    '$2a$10$7EqJtq98hPqEX7fNZaFWoOHi8JqQ8X7w0fvkYlEYwH14r2raekk5K',
+
+    'ADMIN'
+);
+
+-- =========================================
+-- CLIENTES DEMO
+-- =========================================
+
+INSERT INTO clientes (
+    nombre,
+    dni,
+    correo,
+    telefono,
+    estado
+)
+VALUES
+(
+    'Juan Pérez',
+    '74589632',
+    'juan@gmail.com',
+    '987654321',
+    'Activo'
+),
+(
+    'Maria Lopez',
+    '45218963',
+    'maria@gmail.com',
+    '963852741',
+    'Moroso'
+);
+
+-- =========================================
+-- PRESTAMOS DEMO
+-- =========================================
+
+INSERT INTO prestamos (
+    monto,
+    garantia,
+    estado,
+    cliente_id
+)
+VALUES
+(
+    5000,
+    'Canal YouTube',
+    'Pendiente',
+    1
+),
+(
+    12000,
+    'Dominio Web',
+    'Aprobado',
+    2
+);
+
+-- =========================================
+-- GARANTIAS DEMO
+-- =========================================
+
+INSERT INTO garantias (
+    tipo,
+    identificador,
+    valor_estimado,
+    estado,
+    prestamo_id
+)
+VALUES
+(
+    'YouTube',
+    'youtube.com/@canaltest',
+    15000,
+    'Verificada',
+    1
+),
+(
+    'Dominio',
+    'midominio.com',
+    8000,
+    'Pendiente',
+    2
+);
