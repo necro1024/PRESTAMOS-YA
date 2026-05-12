@@ -8,6 +8,7 @@ import {
   logout
 } from "../../services/authService"
 
+import Navbar from "../../components/common/Navbar"
 
 function Home() {
 
@@ -32,145 +33,7 @@ const usuario =
 
     <>
 
-      {/* NAVBAR */}
-
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
-
-        <div className="container">
-
-          <Link
-            to="/"
-            className="navbar-brand fw-bold fs-3"
-          >
-            PrestaYa
-          </Link>
-
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarMain"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div
-            className="collapse navbar-collapse"
-            id="navbarMain"
-          >
-
-            <ul className="navbar-nav ms-auto align-items-lg-center">
-
-              <li className="nav-item me-2">
-
-                <a
-                  href="#inicio"
-                  className="nav-link"
-                >
-                  Inicio
-                </a>
-
-              </li>
-
-              <li className="nav-item me-2">
-
-                <a
-                  href="#simulador"
-                  className="nav-link"
-                >
-                  Simulador
-                </a>
-
-              </li>
-
-              <li className="nav-item me-2">
-
-                <a
-                  href="#beneficios"
-                  className="nav-link"
-                >
-                  Beneficios
-                </a>
-
-              </li>
-
-              <li className="nav-item me-2">
-
-                <a
-                  href="#garantias"
-                  className="nav-link"
-                >
-                  Garantías
-                </a>
-
-                </li>
-
-                <li className="nav-item">
-
-                {autenticado ? (
-
-  <div className="d-flex align-items-center gap-3">
-
-    <span className="text-white">
-
-      <i className="bi bi-person-circle me-2"></i>
-
-      {usuario?.username}
-
-      {usuario?.rol === "ADMIN" && (
-
-  <Link
-    to="/admin/dashboard"
-    className="btn btn-warning btn-sm"
-  >
-
-    Dashboard
-
-  </Link>
-
-)}
-
-    </span>
-
-    <button
-      className="btn btn-outline-light"
-      onClick={() => {
-
-        logout()
-
-        window.location.reload()
-
-      }}
-    >
-
-      Cerrar sesión
-
-    </button>
-
-  </div>
-
-) : (
-
-  <Link
-    to="/acceder"
-    className="btn btn-primary"
-  >
-
-    Acceder
-
-  </Link>
-
-)}
-
-                </li>
-
-            </ul>
-
-            </div>
-
-        </div>
-
-      </nav>
+      <Navbar />
 
       {/* HERO */}
 

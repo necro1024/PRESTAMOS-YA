@@ -94,7 +94,7 @@ function Acceder() {
 
     })
 
-    navigate("/garantia")
+    navigate("/")
 
   }
 

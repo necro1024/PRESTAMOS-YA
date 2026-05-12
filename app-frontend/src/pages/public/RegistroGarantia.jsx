@@ -1,6 +1,10 @@
 import { useState } from "react"
 
+import { useNavigate } from "react-router-dom"
+
 function RegistroGarantia() {
+
+  const navigate = useNavigate()
 
   const [form, setForm] = useState({
 
@@ -46,23 +50,25 @@ function RegistroGarantia() {
 
   const enviarGarantia = (e) => {
 
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!form.acepta) {
-
-      alert(
-        "Debe aceptar términos y condiciones"
-      )
-
-      return
-
-    }
+  if (!form.acepta) {
 
     alert(
-      "Garantía enviada correctamente"
+      "Debe aceptar términos y condiciones"
     )
 
+    return
+
   }
+
+  alert(
+    "Garantía enviada correctamente"
+  )
+
+  navigate("/")
+
+}
 
   return (
 

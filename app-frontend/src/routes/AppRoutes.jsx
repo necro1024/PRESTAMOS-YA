@@ -4,29 +4,23 @@ import {
   Route
 } from "react-router-dom"
 
-import Dashboard
-from "../pages/admin/Dashboard"
+import Dashboard from "../pages/admin/Dashboard"
 
-import GClientes
-from "../pages/admin/GClientes"
+import GClientes from "../pages/admin/GClientes"
 
-import GPrestamos
-from "../pages/admin/GPrestamos"
+import GPrestamos from "../pages/admin/GPrestamos"
 
-import GGarantias
-from "../pages/admin/GGarantias"
+import GGarantias from "../pages/admin/GGarantias"
 
-import Home
-from "../pages/public/Home"
+import Home from "../pages/public/Home"
 
-import SolicitarPrestamo
-from "../pages/public/SolicitarPrestamo"
+import SolicitarPrestamo from "../pages/public/SolicitarPrestamo"
 
-import RegistroGarantia
-from "../pages/public/RegistroGarantia"
+import RegistroGarantia from "../pages/public/RegistroGarantia"
 
-import Acceder
-from "../pages/public/Acceder"
+import Acceder from "../pages/public/Acceder"
+
+import MisPrestamos from "../pages/client/MisPrestamos"
 
 function AppRoutes() {
 
@@ -35,6 +29,11 @@ function AppRoutes() {
     <BrowserRouter>
 
 <Routes>
+
+  <Route
+  path="/mis-prestamos"
+  element={<MisPrestamos />}
+/>
 
   <Route
   path="/acceder"
