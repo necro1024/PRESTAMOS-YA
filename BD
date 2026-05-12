@@ -186,3 +186,18 @@ VALUES
     'Pendiente',
     2
 );
+
+INSERT INTO usuarios (
+    username,
+    password,
+    rol
+)
+VALUES (
+
+    'cliente',
+
+    '$2a$10$7EqJtq98hPqEX7fNZaFWoOHi8JqQ8X7w0fvkYlEYwH14r2raekk5K',
+
+    'CLIENTE'
+
+);
