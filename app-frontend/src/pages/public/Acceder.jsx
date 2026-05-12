@@ -2,25 +2,20 @@ import { useState } from "react"
 
 import { useNavigate } from "react-router-dom"
 
+import { login } from "../../services/authService"
+
 function Acceder() {
 
   const navigate = useNavigate()
 
-  // =========================
-  // STATES LOGIN
-  // =========================
+  const [loginData, setLoginData]
+= useState({
 
-  const [login, setLogin] = useState({
+  username: "",
 
-    username: "",
+  password: ""
 
-    password: ""
-
-  })
-
-  // =========================
-  // STATES REGISTER
-  // =========================
+})
 
   const [register, setRegister] = useState({
 
@@ -32,25 +27,17 @@ function Acceder() {
 
   })
 
-  // =========================
-  // HANDLE LOGIN
-  // =========================
-
   const handleLoginChange = (e) => {
 
-    setLogin({
+    setLoginData({
 
-      ...login,
+      ...loginData,
 
       [e.target.name]: e.target.value
 
     })
 
   }
-
-  // =========================
-  // HANDLE REGISTER
-  // =========================
 
   const handleRegisterChange = (e) => {
 
@@ -64,31 +51,60 @@ function Acceder() {
 
   }
 
-  // =========================
-  // LOGIN
-  // =========================
 
   const iniciarSesion = (e) => {
 
-    e.preventDefault()
+  e.preventDefault()
 
-    // TEMPORAL
+  // ADMIN
 
-    if (
-      login.username === "admin" &&
-      login.password === "admin123"
-    ) {
+  if (
 
-      navigate("/admin/dashboard")
+    loginData.username === "admin" &&
+    loginData.password === "admin123"
 
-    }
+  ) {
 
-    else {
+    login({
 
-      alert("Credenciales inválidas")
+      username: "admin",
 
-    }
+      rol: "ADMIN"
+
+    })
+
+    navigate("/admin/dashboard")
+
   }
+
+  // CLIENTE
+
+  else if (
+
+    loginData.username === "cliente" &&
+    loginData.password === "cliente123"
+
+  ) {
+
+    login({
+
+      username: "cliente",
+
+      rol: "CLIENTE"
+
+    })
+
+    navigate("/garantia")
+
+  }
+
+  else {
+
+    alert("Credenciales inválidas")
+
+  }
+
+}
 
   // =========================
   // REGISTER
@@ -237,7 +253,7 @@ function Acceder() {
                             type="text"
                             name="username"
                             className="form-control"
-                            value={login.username}
+                            value={loginData.username}
                             onChange={handleLoginChange}
                           />
 
@@ -257,7 +273,7 @@ function Acceder() {
                             type="password"
                             name="password"
                             className="form-control"
-                            value={login.password}
+                            value={loginData.password}
                             onChange={handleLoginChange}
                           />
 

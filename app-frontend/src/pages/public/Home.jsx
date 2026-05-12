@@ -2,19 +2,24 @@ import { useState } from "react"
 
 import { Link } from "react-router-dom"
 
+import {
+  estaAutenticado,
+  obtenerUsuario,
+  logout
+} from "../../services/authService"
+
+
 function Home() {
 
-  // =========================
-  // STATES
-  // =========================
+  const autenticado =
+  estaAutenticado()
+
+const usuario =
+  obtenerUsuario()
 
   const [monto, setMonto] = useState(10000)
 
   const [meses, setMeses] = useState(12)
-
-  // =========================
-  // CÁLCULO SIMULADOR
-  // =========================
 
   const interesAnual = 0.18
 
@@ -98,16 +103,64 @@ function Home() {
                   Garantías
                 </a>
 
-                 </li>
+                </li>
 
-                 <li className="nav-item">
+                <li className="nav-item">
 
-                <Link
-                    to="/acceder"
-                    className="btn btn-primary ms-lg-3"
-                >
-                    Acceder
-                </Link>
+                {autenticado ? (
+
+  <div className="d-flex align-items-center gap-3">
+
+    <span className="text-white">
+
+      <i className="bi bi-person-circle me-2"></i>
+
+      {usuario?.username}
+
+      {usuario?.rol === "ADMIN" && (
+
+  <Link
+    to="/admin/dashboard"
+    className="btn btn-warning btn-sm"
+  >
+
+    Dashboard
+
+  </Link>
+
+)}
+
+    </span>
+
+    <button
+      className="btn btn-outline-light"
+      onClick={() => {
+
+        logout()
+
+        window.location.reload()
+
+      }}
+    >
+
+      Cerrar sesión
+
+    </button>
+
+  </div>
+
+) : (
+
+  <Link
+    to="/acceder"
+    className="btn btn-primary"
+  >
+
+    Acceder
+
+  </Link>
+
+)}
 
                 </li>
 
@@ -149,10 +202,16 @@ function Home() {
               <div className="d-flex flex-wrap gap-3">
 
                 <Link
-  to="/solicitar"
+  to={
+    autenticado
+      ? "/garantia"
+      : "/acceder"
+  }
   className="btn btn-primary btn-lg"
 >
+
   Solicitar préstamo
+
 </Link>
 
                 <button className="btn btn-outline-light btn-lg">
@@ -393,10 +452,16 @@ function Home() {
                   </div>
 
                   <Link
-  to="/solicitar"
+  to={
+    autenticado
+      ? "/garantia"
+      : "/acceder"
+  }
   className="btn btn-info btn-lg mt-5 fw-bold"
 >
+
   Continuar solicitud
+
 </Link>
 
                 </div>
