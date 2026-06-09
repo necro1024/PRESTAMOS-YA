@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar";
+import Navbar from "../components/common/Navbar.jsx";
 import { Link } from "react-router-dom";
 
 function Login() {
