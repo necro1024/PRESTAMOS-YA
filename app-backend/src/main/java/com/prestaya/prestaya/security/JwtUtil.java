@@ -25,28 +25,36 @@ public class JwtUtil {
     }
 
     public String generarToken(
-            String username) {
+        String username,
+        String rol) {
 
-        return Jwts.builder()
+    return Jwts.builder()
 
-                .setSubject(username)
+            .setSubject(username)
 
-                .setIssuedAt(new Date())
+            .claim(
+                    "rol",
+                    rol
+            )
 
-                .setExpiration(
+            .setIssuedAt(
+                    new Date()
+            )
+
+            .setExpiration(
                     new Date(
-                        System.currentTimeMillis()
-                        + EXPIRATION
+                            System.currentTimeMillis()
+                            + EXPIRATION
                     )
-                )
+            )
 
-                .signWith(
+            .signWith(
                     getKey(),
                     SignatureAlgorithm.HS256
-                )
+            )
 
-                .compact();
-    }
+            .compact();
+}
 
     public String obtenerUsername(
             String token) {
@@ -63,6 +71,29 @@ public class JwtUtil {
 
                 .getSubject();
     }
+
+    public String obtenerRol(
+        String token) {
+
+    return Jwts.parserBuilder()
+
+            .setSigningKey(
+                    getKey()
+            )
+
+            .build()
+
+            .parseClaimsJws(
+                    token
+            )
+
+            .getBody()
+
+            .get(
+                    "rol",
+                    String.class
+            );
+}
 
     public boolean validarToken(
             String token) {
