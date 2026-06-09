@@ -3,6 +3,7 @@ package com.prestaya.prestaya.service;
 import com.prestaya.prestaya.model.Usuario;
 import com.prestaya.prestaya.repository.UsuarioRepository;
 import com.prestaya.prestaya.security.JwtUtil;
+import com.prestaya.prestaya.dto.LoginResponse;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,9 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
-    public String login(
-            String username,
-            String password) {
+    public LoginResponse login(
+        String username,
+        String password) {
 
         Usuario usuario =
                 repository
@@ -49,6 +50,16 @@ public class AuthService {
             return null;
         }
 
-        return jwtUtil.generarToken(username);
+        String token =
+jwtUtil.generarToken(
+        username,
+        usuario.getRol().name()
+);
+
+return new LoginResponse(
+        token,
+        usuario.getUsername(),
+        usuario.getRol().name()
+);
     }
 }

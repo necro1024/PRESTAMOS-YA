@@ -1,8 +1,10 @@
 package com.prestaya.prestaya.controller;
 
+import com.prestaya.prestaya.application.command.auth.LoginCommand;
+import com.prestaya.prestaya.application.command.auth.LoginCommandHandler;
 import com.prestaya.prestaya.dto.LoginDTO;
-import com.prestaya.prestaya.service.AuthService;
 
+import com.prestaya.prestaya.dto.LoginResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -13,28 +15,31 @@ import java.util.Map;
 @CrossOrigin("*")
 public class AuthController {
 
-    private final AuthService service;
+    private final LoginCommandHandler handler;
 
     public AuthController(
-            AuthService service) {
+        LoginCommandHandler handler) {
 
-        this.service = service;
-    }
+    this.handler = handler;
+}
 
     @PostMapping("/login")
     public Map<String, String> login(
             @RequestBody LoginDTO dto) {
 
-        String token =
-                service.login(
-                    dto.getUsername(),
-                    dto.getPassword()
-                );
+        LoginCommand command =
+        new LoginCommand(
+                dto.getUsername(),
+                dto.getPassword()
+        );
+
+LoginResponse responseLogin =
+        handler.handle(command);
 
         Map<String, String> response =
                 new HashMap<>();
 
-        if (token == null) {
+        if (responseLogin == null) {
 
             response.put(
                 "error",
@@ -44,8 +49,21 @@ public class AuthController {
             return response;
         }
 
-        response.put("token", token);
+        response.put(
+        "token",
+        responseLogin.getToken()
+);
 
-        return response;
+response.put(
+        "username",
+        responseLogin.getUsername()
+);
+
+response.put(
+        "rol",
+        responseLogin.getRol()
+);
+
+return response;
     }
 }
