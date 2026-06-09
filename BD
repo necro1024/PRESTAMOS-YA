@@ -1,14 +1,13 @@
--- =========================================
+
 -- CREAR BASE DE DATOS
--- =========================================
 
 CREATE DATABASE prestaya;
 
 USE prestaya;
 
--- =========================================
+
 -- TABLA USUARIOS
--- =========================================
+
 
 CREATE TABLE usuarios (
 
@@ -22,9 +21,9 @@ CREATE TABLE usuarios (
 
 );
 
--- =========================================
+
 -- TABLA CLIENTES
--- =========================================
+
 
 CREATE TABLE clientes (
 
@@ -42,9 +41,9 @@ CREATE TABLE clientes (
 
 );
 
--- =========================================
+
 -- TABLA PRESTAMOS
--- =========================================
+
 
 CREATE TABLE prestamos (
 
@@ -65,9 +64,9 @@ CREATE TABLE prestamos (
 
 );
 
--- =========================================
+
 -- TABLA GARANTIAS
--- =========================================
+
 
 CREATE TABLE garantias (
 
@@ -109,9 +108,9 @@ VALUES (
     'ADMIN'
 );
 
--- =========================================
+
 -- CLIENTES DEMO
--- =========================================
+
 
 INSERT INTO clientes (
     nombre,
@@ -136,9 +135,9 @@ VALUES
     'Moroso'
 );
 
--- =========================================
+
 -- PRESTAMOS DEMO
--- =========================================
+
 
 INSERT INTO prestamos (
     monto,
@@ -160,9 +159,9 @@ VALUES
     2
 );
 
--- =========================================
+
 -- GARANTIAS DEMO
--- =========================================
+
 
 INSERT INTO garantias (
     tipo,
@@ -187,6 +186,17 @@ VALUES
     2
 );
 
+
+SHOW TABLES;
+
+SELECT * FROM usuarios;
+
+SELECT * FROM clientes;
+
+SELECT * FROM prestamos;
+
+SELECT * FROM garantias;
+
 INSERT INTO usuarios (
     username,
     password,
@@ -201,3 +211,109 @@ VALUES (
     'CLIENTE'
 
 );
+
+USE prestaya;
+
+
+-- USUARIOS: agregar nombre
+
+
+ALTER TABLE usuarios
+ADD COLUMN nombre VARCHAR(150) NULL AFTER username;
+
+UPDATE usuarios
+SET nombre = 'Administrador'
+WHERE username = 'admin';
+
+UPDATE usuarios
+SET nombre = 'Cliente Demo'
+WHERE username = 'cliente';
+
+-- Opcional, despues de actualizar datos existentes:
+ALTER TABLE usuarios
+MODIFY nombre VARCHAR(150) NOT NULL;
+
+
+-- PRESTAMOS: calculo, cuotas y acuerdo digital
+
+
+ALTER TABLE prestamos
+ADD COLUMN cuotas INT NULL AFTER estado,
+ADD COLUMN interes_anual DOUBLE NULL AFTER cuotas,
+ADD COLUMN cuota_mensual DOUBLE NULL AFTER interes_anual,
+ADD COLUMN total_pagar DOUBLE NULL AFTER cuota_mensual,
+ADD COLUMN acuerdo_digital TEXT NULL AFTER total_pagar,
+ADD COLUMN estado_acuerdo VARCHAR(50) NULL AFTER acuerdo_digital,
+ADD COLUMN fecha_firma DATETIME NULL AFTER estado_acuerdo;
+
+UPDATE prestamos
+SET
+    cuotas = 12,
+    interes_anual = 18,
+    total_pagar = monto + (monto * 0.18),
+    cuota_mensual = (monto + (monto * 0.18)) / 12,
+    estado_acuerdo = 'Pendiente'
+WHERE cuotas IS NULL;
+
+
+
+-- GARANTIAS: activo digital, documentos y evaluacion
+
+
+ALTER TABLE garantias
+ADD COLUMN nombre_activo VARCHAR(150) NULL AFTER tipo,
+ADD COLUMN correo_titular VARCHAR(150) NULL AFTER identificador,
+ADD COLUMN fecha_inicio VARCHAR(50) NULL AFTER correo_titular,
+ADD COLUMN ingresos_mensuales DOUBLE NULL AFTER valor_estimado,
+ADD COLUMN identificacion_personal VARCHAR(1000) NULL AFTER ingresos_mensuales,
+ADD COLUMN documentacion_personal VARCHAR(1000) NULL AFTER identificacion_personal,
+ADD COLUMN historial_crediticio VARCHAR(1000) NULL AFTER documentacion_personal,
+ADD COLUMN comprobantes_ingresos VARCHAR(1000) NULL AFTER historial_crediticio,
+ADD COLUMN comprobante_activo VARCHAR(1000) NULL AFTER comprobantes_ingresos,
+ADD COLUMN puntuacion INT NULL AFTER estado,
+ADD COLUMN nivel_riesgo VARCHAR(50) NULL AFTER puntuacion,
+ADD COLUMN recomendacion VARCHAR(100) NULL AFTER nivel_riesgo,
+ADD COLUMN resultado_evaluacion TEXT NULL AFTER recomendacion;
+
+
+-- DATOS DEMO PARA GARANTIAS EXISTENTES
+
+UPDATE garantias
+SET
+    nombre_activo = 'Canal Test',
+    correo_titular = 'juan@gmail.com',
+    fecha_inicio = '2024-01-10',
+    ingresos_mensuales = 1800,
+    identificacion_personal = 'dni_juan.pdf',
+    documentacion_personal = 'documentos_juan.pdf',
+    historial_crediticio = 'historial_juan.pdf',
+    comprobantes_ingresos = 'ingresos_juan.pdf',
+    comprobante_activo = 'dashboard_youtube.png',
+    puntuacion = 95,
+    nivel_riesgo = 'Bajo',
+    recomendacion = 'Aprobar',
+    resultado_evaluacion = 'Activo digital con documentacion completa y cobertura suficiente.'
+WHERE id = 1;
+
+UPDATE garantias
+SET
+    nombre_activo = 'Mi Dominio Web',
+    correo_titular = 'maria@gmail.com',
+    fecha_inicio = '2023-08-20',
+    ingresos_mensuales = 900,
+    identificacion_personal = 'dni_maria.pdf',
+    documentacion_personal = 'documentos_maria.pdf',
+    historial_crediticio = 'historial_maria.pdf',
+    comprobantes_ingresos = 'ingresos_maria.pdf',
+    comprobante_activo = 'dominio_maria.pdf',
+    puntuacion = 65,
+    nivel_riesgo = 'Medio',
+    recomendacion = 'Revisar',
+    resultado_evaluacion = 'Activo con documentacion recibida, requiere validacion adicional.'
+WHERE id = 2;
+
+
+SELECT * FROM usuarios;
+SELECT * FROM clientes;
+SELECT * FROM prestamos;
+SELECT * FROM garantias;
