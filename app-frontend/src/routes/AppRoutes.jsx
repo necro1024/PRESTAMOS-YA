@@ -5,80 +5,63 @@ import {
 } from "react-router-dom"
 
 import Dashboard from "../pages/admin/Dashboard"
-
 import GClientes from "../pages/admin/GClientes"
-
 import GPrestamos from "../pages/admin/GPrestamos"
-
 import GGarantias from "../pages/admin/GGarantias"
 
 import Home from "../pages/public/Home"
-
-import SolicitarPrestamo from "../pages/public/SolicitarPrestamo"
-
+import SolicitarPrestamo from "../pages/SolicitarPrestamo"
 import RegistroGarantia from "../pages/public/RegistroGarantia"
-
 import Acceder from "../pages/public/Acceder"
-
 import MisPrestamos from "../pages/client/MisPrestamos"
+import MiEstado from "../pages/MiEstado"
 
 function AppRoutes() {
-
   return (
-
     <BrowserRouter>
-
 <Routes>
-
   <Route
-  path="/mis-prestamos"
-  element={<MisPrestamos />}
-/>
-
+    path="/mis-prestamos"
+    element={<MisPrestamos />}
+  />
   <Route
-  path="/acceder"
-  element={<Acceder />}
-/>
-
+    path="/acceder"
+    element={<Acceder />}
+  />
   <Route
-  path="/solicitar"
-  element={<SolicitarPrestamo />}
-/>
-
-<Route
-  path="/garantia"
-  element={<RegistroGarantia />}
-/>
-
+    path="/solicitar"
+    element={<SolicitarPrestamo />}
+  />
   <Route
-  path="/"
-  element={<Home />}
-/>
-
+    path="/mi-estado"
+    element={<MiEstado />}
+  />
+  <Route
+    path="/garantia"
+    element={<RegistroGarantia />}
+  />
+  <Route
+    path="/"
+    element={<Home />}
+  />
   <Route
     path="/admin/dashboard"
     element={<Dashboard />}
   />
-
   <Route
     path="/admin/clientes"
     element={<GClientes />}
   />
-
   <Route
     path="/admin/prestamos"
     element={<GPrestamos />}
   />
-
   <Route
     path="/admin/garantias"
     element={<GGarantias />}
   />
-
 </Routes>
-
     </BrowserRouter>
-
   )
 }
 
