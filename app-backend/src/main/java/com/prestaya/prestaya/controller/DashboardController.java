@@ -1,6 +1,7 @@
 package com.prestaya.prestaya.controller;
 
 import com.prestaya.prestaya.repository.ClienteRepository;
+import com.prestaya.prestaya.repository.GarantiaRepository;
 import com.prestaya.prestaya.repository.PrestamoRepository;
 
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +18,16 @@ public class DashboardController {
 
     private final PrestamoRepository prestamoRepository;
 
+    private final GarantiaRepository garantiaRepository;
+
     public DashboardController(
             ClienteRepository clienteRepository,
-            PrestamoRepository prestamoRepository) {
+            PrestamoRepository prestamoRepository,
+            GarantiaRepository garantiaRepository) {
 
         this.clienteRepository = clienteRepository;
         this.prestamoRepository = prestamoRepository;
+        this.garantiaRepository = garantiaRepository;
     }
 
     @GetMapping
@@ -47,6 +52,7 @@ public class DashboardController {
                 .findAll()
                 .stream()
                 .filter(p ->
+                    p.getEstado() != null &&
                     p.getEstado()
                     .equalsIgnoreCase("Aprobado"))
                 .count();
@@ -58,6 +64,7 @@ public class DashboardController {
                 .findAll()
                 .stream()
                 .filter(p ->
+                    p.getEstado() != null &&
                     p.getEstado()
                     .equalsIgnoreCase("Pendiente"))
                 .count();
@@ -68,8 +75,33 @@ public class DashboardController {
                 prestamoRepository
                 .findAll()
                 .stream()
+                .filter(p -> p.getMonto() != null)
                 .mapToDouble(p -> p.getMonto())
                 .sum();
+
+        long activosEvaluados =
+                garantiaRepository
+                .findAll()
+                .stream()
+                .filter(g -> g.getPuntuacion() != null)
+                .count();
+
+        long activosPendientes =
+                garantiaRepository
+                .findAll()
+                .stream()
+                .filter(g ->
+                    g.getPuntuacion() == null)
+                .count();
+
+        double riesgoPromedio =
+                garantiaRepository
+                .findAll()
+                .stream()
+                .filter(g -> g.getPuntuacion() != null)
+                .mapToInt(g -> g.getPuntuacion())
+                .average()
+                .orElse(0);
 
         data.put("clientes", totalClientes);
 
@@ -80,6 +112,12 @@ public class DashboardController {
         data.put("pendientes", pendientes);
 
         data.put("montoTotal", montoTotal);
+
+        data.put("activosEvaluados", activosEvaluados);
+
+        data.put("activosPendientes", activosPendientes);
+
+        data.put("riesgoPromedio", riesgoPromedio);
 
         return data;
     }

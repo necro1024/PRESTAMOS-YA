@@ -18,12 +18,6 @@ function GClientes() {
   const [clienteEditar, setClienteEditar] =
     useState(null)
 
-  useEffect(() => {
-
-    cargarClientes()
-
-  }, [])
-
   // CARGAR CLIENTES
 
   const cargarClientes = async () => {
@@ -41,6 +35,12 @@ function GClientes() {
 
     }
   }
+
+  useEffect(() => {
+
+    cargarClientes()
+
+  }, [])
 
   // GUARDAR
 

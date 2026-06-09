@@ -7,6 +7,17 @@ export const obtenerPrestamos = async () => {
   return response.data
 }
 
+export const obtenerPrestamosPorCliente = async (
+  clienteId
+) => {
+
+  const response = await api.get(
+    `/prestamos/cliente/${clienteId}`
+  )
+
+  return response.data
+}
+
 export const crearPrestamo = async (prestamo) => {
 
   const response = await api.post(
@@ -25,6 +36,19 @@ export const actualizarPrestamo = async (
   const response = await api.put(
     `/prestamos/${id}`,
     prestamo
+  )
+
+  return response.data
+}
+
+export const firmarAcuerdoPrestamo = async (
+  id,
+  acuerdoDigital
+) => {
+
+  const response = await api.put(
+    `/prestamos/${id}/firmar`,
+    { acuerdoDigital }
   )
 
   return response.data

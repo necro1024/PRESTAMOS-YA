@@ -12,6 +12,8 @@ public class Usuario {
 
     private String username;
 
+    private String nombre;
+
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -23,11 +25,13 @@ public class Usuario {
     public Usuario(
             Long id,
             String username,
+            String nombre,
             String password,
             Rol rol) {
 
         this.id = id;
         this.username = username;
+        this.nombre = nombre;
         this.password = password;
         this.rol = rol;
     }
@@ -46,6 +50,14 @@ public class Usuario {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public String getPassword() {

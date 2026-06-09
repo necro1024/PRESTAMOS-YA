@@ -1,315 +1,291 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+import { obtenerGarantiasPorPrestamo } from "../../services/garantiaService"
 
 function ModalAuditoria({
-
   prestamo,
-
   onActualizarEstado
-
 }) {
+  const [decision, setDecision] = useState("Pendiente")
+  const [notas, setNotas] = useState("")
+  const [garantia, setGarantia] = useState(null)
 
-  // =========================
-  // STATES
-  // =========================
+  useEffect(() => {
+    const cargarGarantia = async () => {
+      if (!prestamo?.id) {
+        setGarantia(null)
+        return
+      }
 
-  const [decision, setDecision] =
-    useState(
-      prestamo?.estado ||
-      "Pendiente"
-    )
+      try {
+        const data = await obtenerGarantiasPorPrestamo(prestamo.id)
+        setGarantia(data[0] || null)
+      } catch (error) {
+        console.error(error)
+        setGarantia(null)
+      }
+    }
 
-  const [notas, setNotas] =
-    useState("")
+    setDecision(prestamo?.estado || "Pendiente")
+    setNotas("")
+    cargarGarantia()
+  }, [prestamo])
 
-  // =========================
-  // CONFIRMAR
-  // =========================
+  const documentosValidos = useMemo(() => {
+    if (!garantia) return 0
 
-  const confirmarAuditoria = () => {
+    return [
+      garantia.identificacionPersonal,
+      garantia.documentacionPersonal,
+      garantia.historialCrediticio,
+      garantia.comprobantesIngresos,
+      garantia.comprobanteActivo
+    ].filter(Boolean).length
+  }, [garantia])
 
-    onActualizarEstado(
-      prestamo.id,
-      decision
-    )
+  const cobertura = useMemo(() => {
+    const valor = Number(garantia?.valorEstimado || 0)
+    const monto = Number(prestamo?.monto || 0)
 
+    if (!valor || !monto) return 0
+    return Math.round((valor / monto) * 100)
+  }, [garantia, prestamo])
+
+  const scoreFinal = garantia?.puntuacion || 0
+  const riesgo = garantia?.nivelRiesgo || "Pendiente"
+  const recomendacion = garantia?.recomendacion || "Revisar"
+
+  const confirmarAuditoria = (estado = decision) => {
+    if (!prestamo) return
+    onActualizarEstado(prestamo.id, estado)
   }
 
-  if (!prestamo) return null
+  const badgeRiesgo = riesgo === "Bajo"
+    ? "bg-success"
+    : riesgo === "Alto"
+      ? "bg-danger"
+      : "bg-warning text-dark"
 
   return (
-
     <div
       className="modal fade"
       id="modalAuditoria"
       tabIndex="-1"
     >
-
-      <div className="modal-dialog modal-lg">
-
-        <div className="modal-content border-0 shadow">
-
-          {/* HEADER */}
-
+      <div className="modal-dialog modal-lg modal-dialog-scrollable">
+        <div className="modal-content border-0 shadow-lg">
           <div className="modal-header bg-dark text-white">
-
-            <h5 className="modal-title">
-
-              <i className="bi bi-incognito me-2"></i>
-
-              Auditoría Técnica
-              #{prestamo.id}
-
-            </h5>
+            <div>
+              <h5 className="modal-title fw-bold">
+                Auditoria Tecnica de Prestamo
+              </h5>
+              <small className="text-white-50">
+                ID Prestamo: {prestamo?.id || "-"} - Cliente:{" "}
+                {prestamo?.cliente?.nombre || "Sin cliente"} - Estado:{" "}
+                {prestamo?.estado || "Pendiente"}
+              </small>
+            </div>
 
             <button
               type="button"
               className="btn-close btn-close-white"
               data-bs-dismiss="modal"
             ></button>
-
           </div>
 
-          {/* BODY */}
+          <div className="modal-body bg-light">
+            {!prestamo ? (
+              <p className="text-muted mb-0">
+                Selecciona un prestamo para auditar.
+              </p>
+            ) : (
+              <>
+                <h6 className="fw-bold text-uppercase text-muted mb-3">
+                  Resumen de Garantia
+                </h6>
 
-          <div className="modal-body">
-
-            {/* SECCIÓN 1 */}
-
-            <h6 className="text-primary border-bottom pb-2 fw-bold">
-
-              1. Verificación de Activo Digital
-
-            </h6>
-
-            <div className="row mb-4 mt-3 align-items-center">
-
-              {/* CARD */}
-
-              <div className="col-md-5">
-
-                <div className="card bg-light border-0 shadow-sm p-3 text-center rounded-4">
-
-                  <i className="bi bi-graph-up-arrow text-success fs-2"></i>
-
-                  <p className="small mb-1 mt-2 fw-bold text-dark">
-
-                    Métricas en Tiempo Real
-
-                  </p>
-
-                  <div className="d-flex justify-content-between small px-2">
-
-                    <span>Ingreso Mes:</span>
-
-                    <span className="text-success fw-bold">
-
-                      S/ 1,200.00
-
-                    </span>
-
-                  </div>
-
-                  <div className="d-flex justify-content-between small px-2">
-
-                    <span>Retención:</span>
-
-                    <span className="text-primary">
-
-                      85%
-
-                    </span>
-
-                  </div>
-
-                  <hr className="my-2" />
-
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-dark"
-                  >
-
-                    <i className="bi bi-file-earmark-pdf me-1"></i>
-
-                    Ver Reporte PDF
-
-                  </button>
-
+                <div className="row g-3 mb-4">
+                  <Metric label="Garantia" value={garantia?.tipo || "Sin garantia"} />
+                  <Metric label="Score" value={scoreFinal || "Sin evaluar"} />
+                  <Metric
+                    label="Riesgo"
+                    value={<span className={`badge ${badgeRiesgo}`}>{riesgo}</span>}
+                  />
+                  <Metric label="Cobertura" value={`${cobertura}%`} />
                 </div>
 
-              </div>
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body">
+                    <h6 className="fw-bold mb-3">
+                      Informacion Financiera
+                    </h6>
 
-              {/* NOTAS */}
+                    <div className="row g-3">
+                      <Info label="Valor de la garantia" value={`S/ ${garantia?.valorEstimado || 0}`} />
+                      <Info label="Ingresos mensuales" value={`S/ ${garantia?.ingresosMensuales || 0}`} />
+                      <Info label="Monto solicitado" value={`S/ ${prestamo.monto || 0}`} />
+                      <Info label="Cuotas" value={prestamo.cuotas || 0} />
+                      <Info
+                        label="Cuota mensual"
+                        value={`S/ ${Number(prestamo.cuotaMensual || 0).toFixed(2)}`}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              <div className="col-md-7">
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="fw-bold mb-0">
+                        Documentacion Recibida
+                      </h6>
+                      <span className="badge bg-primary">
+                        Documentos validos: {documentosValidos}/5
+                      </span>
+                    </div>
 
-                <label className="form-label text-muted small">
+                    <div className="row g-2">
+                      <Doc label="Identificacion personal" ok={Boolean(garantia?.identificacionPersonal)} />
+                      <Doc label="Documentacion personal" ok={Boolean(garantia?.documentacionPersonal)} />
+                      <Doc label="Historial crediticio" ok={Boolean(garantia?.historialCrediticio)} />
+                      <Doc label="Comprobante de ingresos" ok={Boolean(garantia?.comprobantesIngresos)} />
+                      <Doc label="Comprobante del activo" ok={Boolean(garantia?.comprobanteActivo)} />
+                    </div>
+                  </div>
+                </div>
 
-                  Notas de Auditoría Técnica
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body">
+                    <h6 className="fw-bold mb-3">
+                      Resultado de Evaluacion
+                    </h6>
 
-                </label>
+                    <div className="d-flex flex-wrap gap-2">
+                      <span className="badge bg-info text-dark">
+                        Score Final: {scoreFinal || "Sin evaluar"}
+                      </span>
+                      <span className={`badge ${badgeRiesgo}`}>
+                        Nivel de Riesgo: {riesgo}
+                      </span>
+                      <span className="badge bg-dark">
+                        Recomendacion: {recomendacion}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                <textarea
-                  className="form-control"
-                  rows="5"
-                  placeholder="Ej: Validación del activo digital..."
-                  value={notas}
-                  onChange={(e) =>
-                    setNotas(e.target.value)
-                  }
-                ></textarea>
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">
+                    Notas de Auditoria Tecnica
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows="4"
+                    placeholder="Registra observaciones para el comite de riesgos..."
+                    value={notas}
+                    onChange={(e) => setNotas(e.target.value)}
+                  ></textarea>
+                </div>
 
-              </div>
+                <div className="p-3 bg-white rounded border">
+                  <label className="form-label fw-bold text-dark">
+                    Decision del Comite de Riesgos
+                  </label>
 
-            </div>
-
-            {/* SECCIÓN 2 */}
-
-            <h6 className="text-primary border-bottom pb-2 fw-bold">
-
-              2. Transferencia y Seguridad
-
-            </h6>
-
-            <div className="row mt-3 mb-3">
-
-              {/* TOKEN */}
-
-              <div className="col-md-6">
-
-                <label className="form-label text-muted small">
-
-                  Estado del Token / Garantía
-
-                </label>
-
-                <select className="form-select">
-
-                  <option>
-                    Token API Activo
-                  </option>
-
-                  <option>
-                    Contrato Inteligente
-                  </option>
-
-                  <option>
-                    Dominio en Escrow
-                  </option>
-
-                  <option>
-                    Garantía Liberada
-                  </option>
-
-                </select>
-
-              </div>
-
-              {/* MÉTODO */}
-
-              <div className="col-md-6">
-
-                <label className="form-label text-muted small">
-
-                  Método de Desembolso
-
-                </label>
-
-                <select className="form-select">
-
-                  <option>
-                    Transferencia Bancaria
-                  </option>
-
-                  <option>
-                    Yape / Plin
-                  </option>
-
-                  <option>
-                    Criptomoneda
-                  </option>
-
-                </select>
-
-              </div>
-
-            </div>
-
-            {/* DECISIÓN */}
-
-            <div className="mb-3 p-3 bg-light rounded border border-primary-subtle">
-
-              <label className="form-label fw-bold text-dark">
-
-                Decisión del Comité de Riesgos
-
-              </label>
-
-              <select
-                className="form-select border-primary form-select-lg"
-                value={decision}
-                onChange={(e) =>
-                  setDecision(e.target.value)
-                }
-              >
-
-                <option value="Pendiente">
-
-                  En proceso de Auditoría
-
-                </option>
-
-                <option value="Aprobado">
-
-                  Aprobado
-
-                </option>
-
-                <option value="Rechazado">
-
-                  Rechazado
-
-                </option>
-
-              </select>
-
-            </div>
-
+                  <select
+                    className="form-select"
+                    value={decision}
+                    onChange={(e) => setDecision(e.target.value)}
+                  >
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Aprobado">Aprobado</option>
+                    <option value="Solicitar Informacion">Solicitar Informacion</option>
+                    <option value="Rechazado">Rechazado</option>
+                  </select>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* FOOTER */}
-
           <div className="modal-footer">
-
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cerrar
+            </button>
             <button
               type="button"
               className="btn btn-secondary"
               data-bs-dismiss="modal"
             >
-
-              Cerrar
-
+              Volver al listado
             </button>
-
             <button
               type="button"
               className="btn btn-success"
-              onClick={confirmarAuditoria}
+              data-bs-dismiss="modal"
+              disabled={!prestamo}
+              onClick={() => confirmarAuditoria("Aprobado")}
             >
-
-              <i className="bi bi-cloud-check-fill me-2"></i>
-
-              Confirmar Auditoría
-
+              Aprobar Prestamo
             </button>
-
+            <button
+              type="button"
+              className="btn btn-warning"
+              data-bs-dismiss="modal"
+              disabled={!prestamo}
+              onClick={() => confirmarAuditoria("Solicitar Informacion")}
+            >
+              Solicitar Informacion
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              data-bs-dismiss="modal"
+              disabled={!prestamo}
+              onClick={() => confirmarAuditoria("Rechazado")}
+            >
+              Rechazar Prestamo
+            </button>
           </div>
-
         </div>
-
       </div>
-
     </div>
+  )
+}
 
+function Metric({ label, value }) {
+  return (
+    <div className="col-md-3">
+      <div className="card border-0 shadow-sm h-100">
+        <div className="card-body">
+          <small className="text-muted">{label}</small>
+          <div className="fw-bold mt-1">{value}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Info({ label, value }) {
+  return (
+    <div className="col-md-4">
+      <small className="text-muted">{label}</small>
+      <div className="fw-semibold">{value}</div>
+    </div>
+  )
+}
+
+function Doc({ label, ok }) {
+  return (
+    <div className="col-md-6">
+      <span className={ok ? "text-success" : "text-muted"}>
+        <i className={`bi ${ok ? "bi-check-circle" : "bi-dash-circle"} me-1`}></i>
+        {label}
+      </span>
+    </div>
   )
 }
 

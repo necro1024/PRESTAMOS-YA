@@ -1,143 +1,120 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 
-import { useNavigate } from "react-router-dom"
+import { crearGarantia } from "../../services/garantiaService"
 
 function RegistroGarantia() {
-
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const prestamoId = useMemo(() => {
+    return searchParams.get("prestamoId") ||
+      localStorage.getItem("prestamoActivoId")
+  }, [searchParams])
 
   const [form, setForm] = useState({
-
     tipo: "",
-
     nombreActivo: "",
-
     identificador: "",
-
-    correo: "",
-
+    correoTitular: "",
     fechaInicio: "",
-
+    valorEstimado: "",
+    ingresosMensuales: "",
+    identificacionPersonal: "",
+    documentacionPersonal: "",
+    historialCrediticio: "",
+    comprobantesIngresos: "",
+    comprobanteActivo: "",
     acepta: false
-
   })
 
-  const [archivoDashboard,
-    setArchivoDashboard] =
-    useState(null)
-
-  const [archivoFactura,
-    setArchivoFactura] =
-    useState(null)
-
   const handleChange = (e) => {
-
-    const { name, value, type, checked }
-      = e.target
+    const { name, value, type, checked, files } = e.target
+    const nextValue = type === "checkbox"
+      ? checked
+      : files?.[0]?.name || value
 
     setForm({
-
       ...form,
-
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value
-
+      [name]: nextValue
     })
-
   }
 
-  const enviarGarantia = (e) => {
+  const enviarGarantia = async (e) => {
+    e.preventDefault()
 
-  e.preventDefault()
+    if (!prestamoId) {
+      alert("Primero debes calcular y guardar el prestamo")
+      navigate("/solicitar")
+      return
+    }
 
-  if (!form.acepta) {
+    if (!form.acepta) {
+      alert("Debe aceptar terminos y validacion de activos digitales")
+      return
+    }
 
-    alert(
-      "Debe aceptar términos y condiciones"
-    )
+    try {
+      await crearGarantia({
+        tipo: form.tipo,
+        nombreActivo: form.nombreActivo,
+        identificador: form.identificador,
+        correoTitular: form.correoTitular,
+        fechaInicio: form.fechaInicio,
+        valorEstimado: Number(form.valorEstimado),
+        ingresosMensuales: Number(form.ingresosMensuales),
+        identificacionPersonal: form.identificacionPersonal,
+        documentacionPersonal: form.documentacionPersonal,
+        historialCrediticio: form.historialCrediticio,
+        comprobantesIngresos: form.comprobantesIngresos,
+        comprobanteActivo: form.comprobanteActivo,
+        estado: "Pendiente",
+        prestamo: {
+          id: Number(prestamoId)
+        }
+      })
 
-    return
-
+      localStorage.removeItem("prestamoActivoId")
+      navigate("/mis-prestamos")
+    } catch (error) {
+      console.error(error)
+      alert("No se pudo guardar la garantia")
+    }
   }
-
-  alert(
-    "Garantía enviada correctamente"
-  )
-
-  navigate("/")
-
-}
 
   return (
-
     <div className="bg-light min-vh-100 py-5">
-
       <div className="container">
-
         <div className="row justify-content-center">
-
           <div className="col-lg-10">
-
-            {/* HEADER */}
-
             <div className="text-center mb-5">
-
               <span className="badge bg-primary px-3 py-2 fs-6 mb-3">
-
-                Plataforma Segura
-
+                Paso 2 de 2
               </span>
 
               <h1 className="fw-bold display-5">
-
-                Registro de Garantía Digital
-
+                Registro de Garantia Digital
               </h1>
 
               <p className="text-muted mt-3">
-
-                Complete la información del activo
-                digital que será utilizado como
-                respaldo financiero.
-
+                Completa la informacion del activo digital,
+                documentos personales, historial e ingresos.
               </p>
-
             </div>
 
-            {/* FORM CARD */}
-
             <div className="card border-0 shadow-lg rounded-4">
-
               <div className="card-body p-5">
-
                 <form onSubmit={enviarGarantia}>
-
-                  {/* ========================= */}
-                  {/* ACTIVO DIGITAL */}
-                  {/* ========================= */}
-
                   <div className="mb-5">
-
                     <h4 className="fw-bold text-primary mb-4">
-
                       <i className="bi bi-globe2 me-2"></i>
-
-                      Información del Activo
-
+                      Activo digital
                     </h4>
 
                     <div className="row g-4">
-
-                      {/* TIPO */}
-
                       <div className="col-md-6">
-
                         <label className="form-label fw-semibold">
-
-                          Tipo de Garantía
-
+                          Tipo de activo
                         </label>
 
                         <select
@@ -145,44 +122,20 @@ function RegistroGarantia() {
                           className="form-select"
                           value={form.tipo}
                           onChange={handleChange}
+                          required
                         >
-
-                          <option value="">
-                            Seleccione
-                          </option>
-
-                          <option value="YouTube">
-                            Canal YouTube
-                          </option>
-
-                          <option value="Dominio">
-                            Dominio Web
-                          </option>
-
-                          <option value="Stripe">
-                            Cuenta Stripe
-                          </option>
-
-                          <option value="PayPal">
-                            Cuenta PayPal
-                          </option>
-
-                          <option value="SaaS">
-                            Plataforma SaaS
-                          </option>
-
+                          <option value="">Seleccione</option>
+                          <option value="YouTube">Canal YouTube</option>
+                          <option value="Dominio">Dominio Web</option>
+                          <option value="Stripe">Cuenta Stripe</option>
+                          <option value="PayPal">Cuenta PayPal</option>
+                          <option value="SaaS">Plataforma SaaS</option>
                         </select>
-
                       </div>
 
-                      {/* NOMBRE */}
-
                       <div className="col-md-6">
-
                         <label className="form-label fw-semibold">
-
-                          Nombre del Activo
-
+                          Nombre del activo
                         </label>
 
                         <input
@@ -192,18 +145,13 @@ function RegistroGarantia() {
                           placeholder="Ej: Mi Canal Tech"
                           value={form.nombreActivo}
                           onChange={handleChange}
+                          required
                         />
-
                       </div>
 
-                      {/* IDENTIFICADOR */}
-
                       <div className="col-md-6">
-
                         <label className="form-label fw-semibold">
-
-                          URL / ID Canal / Dominio
-
+                          URL, dominio o ID
                         </label>
 
                         <input
@@ -213,147 +161,28 @@ function RegistroGarantia() {
                           placeholder="https://..."
                           value={form.identificador}
                           onChange={handleChange}
+                          required
                         />
-
                       </div>
 
-                      {/* EMAIL */}
-
                       <div className="col-md-6">
-
                         <label className="form-label fw-semibold">
-
                           Email del titular
-
                         </label>
 
                         <input
                           type="email"
-                          name="correo"
+                          name="correoTitular"
                           className="form-control"
-                          placeholder="correo@gmail.com"
-                          value={form.correo}
+                          value={form.correoTitular}
                           onChange={handleChange}
+                          required
                         />
-
                       </div>
 
-                    </div>
-
-                  </div>
-
-                  {/* ========================= */}
-                  {/* SEGURIDAD */}
-                  {/* ========================= */}
-
-                  <div className="mb-5">
-
-                    <h4 className="fw-bold text-primary mb-4">
-
-                      <i className="bi bi-shield-lock me-2"></i>
-
-                      Validación y Seguridad
-
-                    </h4>
-
-                    <div className="row g-4">
-
-                      {/* DASHBOARD */}
-
-                      <div className="col-md-6">
-
+                      <div className="col-md-4">
                         <label className="form-label fw-semibold">
-
-                          Captura Dashboard
-
-                        </label>
-
-                        <input
-                          type="file"
-                          className="form-control"
-                          onChange={(e) =>
-                            setArchivoDashboard(
-                              e.target.files[0]
-                            )
-                          }
-                        />
-
-                        {archivoDashboard && (
-
-                          <small className="text-success">
-
-                            Archivo:
-                            {" "}
-                            {archivoDashboard.name}
-
-                          </small>
-
-                        )}
-
-                      </div>
-
-                      {/* FACTURA */}
-
-                      <div className="col-md-6">
-
-                        <label className="form-label fw-semibold">
-
-                          Factura / Comprobante
-
-                        </label>
-
-                        <input
-                          type="file"
-                          className="form-control"
-                          onChange={(e) =>
-                            setArchivoFactura(
-                              e.target.files[0]
-                            )
-                          }
-                        />
-
-                        {archivoFactura && (
-
-                          <small className="text-success">
-
-                            Archivo:
-                            {" "}
-                            {archivoFactura.name}
-
-                          </small>
-
-                        )}
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  {/* ========================= */}
-                  {/* LEGAL */}
-                  {/* ========================= */}
-
-                  <div className="mb-5">
-
-                    <h4 className="fw-bold text-primary mb-4">
-
-                      <i className="bi bi-file-earmark-text me-2"></i>
-
-                      Información Legal
-
-                    </h4>
-
-                    <div className="row g-4">
-
-                      {/* FECHA */}
-
-                      <div className="col-md-6">
-
-                        <label className="form-label fw-semibold">
-
-                          Fecha de adquisición
-
+                          Fecha de adquisicion
                         </label>
 
                         <input
@@ -362,85 +191,188 @@ function RegistroGarantia() {
                           className="form-control"
                           value={form.fechaInicio}
                           onChange={handleChange}
+                          required
                         />
-
                       </div>
 
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">
+                          Valor estimado
+                        </label>
+
+                        <input
+                          type="number"
+                          name="valorEstimado"
+                          className="form-control"
+                          value={form.valorEstimado}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">
+                          Ingresos mensuales
+                        </label>
+
+                        <input
+                          type="number"
+                          name="ingresosMensuales"
+                          className="form-control"
+                          value={form.ingresosMensuales}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
                     </div>
-
-                    {/* CHECKBOX */}
-
-                    <div className="form-check mt-4">
-
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        name="acepta"
-                        checked={form.acepta}
-                        onChange={handleChange}
-                      />
-
-                      <label className="form-check-label">
-
-                        Acepto términos,
-                        políticas y validación
-                        de activos digitales.
-
-                      </label>
-
-                    </div>
-
                   </div>
 
-                  {/* RESUMEN */}
+                  <div className="mb-5">
+                    <h4 className="fw-bold text-primary mb-4">
+                      <i className="bi bi-person-vcard me-2"></i>
+                      Identificacion y documentacion personal
+                    </h4>
+
+                    <div className="row g-4">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">
+                          Identificacion personal
+                        </label>
+
+                        <input
+                          type="file"
+                          name="identificacionPersonal"
+                          className="form-control"
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">
+                          Documentacion personal
+                        </label>
+
+                        <input
+                          type="file"
+                          name="documentacionPersonal"
+                          className="form-control"
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-5">
+                    <h4 className="fw-bold text-primary mb-4">
+                      <i className="bi bi-file-earmark-check me-2"></i>
+                      Historial, ingresos y comprobantes
+                    </h4>
+
+                    <div className="row g-4">
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">
+                          Historial crediticio
+                        </label>
+
+                        <input
+                          type="file"
+                          name="historialCrediticio"
+                          className="form-control"
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">
+                          Comprobantes de ingresos
+                        </label>
+
+                        <input
+                          type="file"
+                          name="comprobantesIngresos"
+                          className="form-control"
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">
+                          Comprobante del activo
+                        </label>
+
+                        <input
+                          type="file"
+                          name="comprobanteActivo"
+                          className="form-control"
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="alert alert-info border-0 rounded-4">
-
                     <div className="d-flex align-items-center">
-
                       <i className="bi bi-info-circle-fill fs-4 me-3"></i>
-
                       <div>
-
-                        El equipo de auditoría validará
-                        la garantía digital antes de
-                        aprobar el préstamo.
-
+                        El administrador evaluara la garantia digital
+                        y aprobara o rechazara la solicitud.
                       </div>
-
                     </div>
-
                   </div>
 
-                  {/* BOTÓN */}
+                  <div className="form-check mt-4">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="acepta"
+                      checked={form.acepta}
+                      onChange={handleChange}
+                    />
 
-                  <div className="d-grid mt-5">
+                    <label className="form-check-label">
+                      Acepto terminos, politicas y validacion de
+                      activos digitales.
+                    </label>
+                  </div>
+
+                  <div className="d-flex flex-wrap justify-content-between gap-2 mt-5">
+                    <div className="d-flex gap-2">
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => navigate(-1)}
+                      >
+                        Volver
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger"
+                        onClick={() => navigate("/")}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
 
                     <button
                       type="submit"
-                      className="btn btn-primary btn-lg py-3 fw-bold"
+                      className="btn btn-primary btn-lg px-4 fw-bold"
                     >
-
                       <i className="bi bi-cloud-upload me-2"></i>
-
-                      Enviar Garantía Digital
-
+                      Enviar Garantia
                     </button>
-
                   </div>
-
                 </form>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   )
 }

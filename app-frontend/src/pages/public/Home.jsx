@@ -4,8 +4,6 @@ import { Link } from "react-router-dom"
 
 import {
   estaAutenticado,
-  obtenerUsuario,
-  logout
 } from "../../services/authService"
 
 import Navbar from "../../components/common/Navbar"
@@ -14,9 +12,6 @@ function Home() {
 
   const autenticado =
   estaAutenticado()
-
-const usuario =
-  obtenerUsuario()
 
   const [monto, setMonto] = useState(10000)
 
@@ -67,7 +62,7 @@ const usuario =
                 <Link
   to={
     autenticado
-      ? "/garantia"
+      ? "/solicitar"
       : "/acceder"
   }
   className="btn btn-primary btn-lg"
@@ -317,7 +312,7 @@ const usuario =
                   <Link
   to={
     autenticado
-      ? "/garantia"
+      ? "/solicitar"
       : "/acceder"
   }
   className="btn btn-info btn-lg mt-5 fw-bold"

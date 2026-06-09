@@ -27,6 +27,14 @@ public class GarantiaController {
         return service.listar();
     }
 
+    @GetMapping("/prestamo/{prestamoId}")
+    public List<Garantia> listarPorPrestamo(
+            @PathVariable Long prestamoId) {
+
+        return service.listarPorPrestamo(
+                prestamoId);
+    }
+
     @PostMapping
     public Garantia guardar(
             @RequestBody Garantia garantia) {
@@ -40,6 +48,13 @@ public class GarantiaController {
             @RequestBody Garantia garantia) {
 
         return service.actualizar(id, garantia);
+    }
+
+    @PutMapping("/{id}/evaluar")
+    public Garantia evaluar(
+            @PathVariable Long id) {
+
+        return service.evaluarActivo(id);
     }
 
     @DeleteMapping("/{id}")

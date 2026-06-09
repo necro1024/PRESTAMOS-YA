@@ -135,6 +135,22 @@ return (
             <div className="modal-footer">
 
             <button
+                type="button"
+                className="btn btn-outline-secondary"
+                data-bs-dismiss="modal"
+            >
+                Cerrar
+            </button>
+
+            <button
+                type="button"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+            >
+                Volver al listado
+            </button>
+
+            <button
                 type="submit"
                 className="btn btn-primary"
             >

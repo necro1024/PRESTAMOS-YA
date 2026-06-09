@@ -10,6 +10,11 @@ const response = await api.post("/clientes", cliente)
 return response.data
 }
 
+export const obtenerCliente = async (id) => {
+const response = await api.get(`/clientes/${id}`)
+return response.data
+}
+
 export const eliminarCliente = async (id) => {
 return await api.delete(`/clientes/${id}`)
 }

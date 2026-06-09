@@ -56,11 +56,6 @@ function AppRoutes() {
 />
 
   <Route
-    path="/"
-    element={<Dashboard />}
-  />
-
-  <Route
     path="/admin/dashboard"
     element={<Dashboard />}
   />

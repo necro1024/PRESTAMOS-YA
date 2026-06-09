@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -21,6 +22,21 @@ public class Prestamo {
 
     private String estado;
 
+    private Integer cuotas;
+
+    private Double interesAnual;
+
+    private Double cuotaMensual;
+
+    private Double totalPagar;
+
+    @Column(length = 2000)
+    private String acuerdoDigital;
+
+    private String estadoAcuerdo;
+
+    private LocalDateTime fechaFirma;
+
     @ManyToOne
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
@@ -37,12 +53,20 @@ private List<Garantia> garantias;
             Double monto,
             String garantia,
             String estado,
+            Integer cuotas,
+            Double interesAnual,
+            Double cuotaMensual,
+            Double totalPagar,
             Cliente cliente) {
 
         this.id = id;
         this.monto = monto;
         this.garantia = garantia;
         this.estado = estado;
+        this.cuotas = cuotas;
+        this.interesAnual = interesAnual;
+        this.cuotaMensual = cuotaMensual;
+        this.totalPagar = totalPagar;
         this.cliente = cliente;
     }
 
@@ -76,6 +100,62 @@ private List<Garantia> garantias;
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public Integer getCuotas() {
+        return cuotas;
+    }
+
+    public void setCuotas(Integer cuotas) {
+        this.cuotas = cuotas;
+    }
+
+    public Double getInteresAnual() {
+        return interesAnual;
+    }
+
+    public void setInteresAnual(Double interesAnual) {
+        this.interesAnual = interesAnual;
+    }
+
+    public Double getCuotaMensual() {
+        return cuotaMensual;
+    }
+
+    public void setCuotaMensual(Double cuotaMensual) {
+        this.cuotaMensual = cuotaMensual;
+    }
+
+    public Double getTotalPagar() {
+        return totalPagar;
+    }
+
+    public void setTotalPagar(Double totalPagar) {
+        this.totalPagar = totalPagar;
+    }
+
+    public String getAcuerdoDigital() {
+        return acuerdoDigital;
+    }
+
+    public void setAcuerdoDigital(String acuerdoDigital) {
+        this.acuerdoDigital = acuerdoDigital;
+    }
+
+    public String getEstadoAcuerdo() {
+        return estadoAcuerdo;
+    }
+
+    public void setEstadoAcuerdo(String estadoAcuerdo) {
+        this.estadoAcuerdo = estadoAcuerdo;
+    }
+
+    public LocalDateTime getFechaFirma() {
+        return fechaFirma;
+    }
+
+    public void setFechaFirma(LocalDateTime fechaFirma) {
+        this.fechaFirma = fechaFirma;
     }
 
     public Cliente getCliente() {

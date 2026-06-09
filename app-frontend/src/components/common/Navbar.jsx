@@ -152,7 +152,7 @@ return (
 
                     <i className="bi bi-person-circle me-2"></i>
 
-                    {usuario?.username}
+                    {usuario?.nombre || "Usuario"}
 
                   </span>
 

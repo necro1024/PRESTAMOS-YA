@@ -1,24 +1,18 @@
 import { useEffect, useState } from "react";
-import { obtenerPrestamos } from "../services/api";
+import { obtenerPrestamos } from "../services/prestamoService";
 
 export default function TablaPrestamos() {
 
     const [prestamos, setPrestamos] = useState([]);
 
-    useEffect(() => {
-
-        cargarPrestamos();
-
-    }, []);
-
     const cargarPrestamos = async () => {
 
         try {
 
-            const response =
+            const data =
                 await obtenerPrestamos();
 
-            setPrestamos(response.data);
+            setPrestamos(data);
 
         } catch (error) {
 
@@ -28,6 +22,12 @@ export default function TablaPrestamos() {
             );
         }
     };
+
+    useEffect(() => {
+
+        cargarPrestamos();
+
+    }, []);
 
     return (
 

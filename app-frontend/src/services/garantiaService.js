@@ -8,6 +8,18 @@ export const obtenerGarantias = async () => {
   return response.data
 }
 
+export const obtenerGarantiasPorPrestamo = async (
+  prestamoId
+) => {
+
+  const response =
+    await api.get(
+      `/garantias/prestamo/${prestamoId}`
+    )
+
+  return response.data
+}
+
 export const crearGarantia = async (
   garantia
 ) => {
@@ -31,6 +43,14 @@ export const actualizarGarantia = async (
       `/garantias/${id}`,
       garantia
     )
+
+  return response.data
+}
+
+export const evaluarGarantia = async (id) => {
+
+  const response =
+    await api.put(`/garantias/${id}/evaluar`)
 
   return response.data
 }

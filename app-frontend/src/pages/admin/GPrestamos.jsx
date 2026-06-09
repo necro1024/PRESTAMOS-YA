@@ -1,308 +1,156 @@
 import { useEffect, useState } from "react"
 
 import AdminLayout from "../../layouts/AdminLayout"
-
 import ModalAuditoria from "../../components/prestamos/ModalAuditoria"
 
 import {
-  obtenerPrestamos,
-  crearPrestamo,
   actualizarPrestamo,
-  eliminarPrestamo
+  eliminarPrestamo,
+  obtenerPrestamos
 } from "../../services/prestamoService"
 
-import {
-  obtenerClientes
-} from "../../services/clienteService"
-
 function GPrestamos() {
-
   const [prestamos, setPrestamos] = useState([])
-
-  const [clientes, setClientes] = useState([])
-
-  const [prestamoEditar, setPrestamoEditar] =
-    useState(null)
-
-  useEffect(() => {
-
-    cargarPrestamos()
-
-    cargarClientes()
-
-  }, [])
-
-  // CARGAR PRÉSTAMOS
+  const [prestamoAuditar, setPrestamoAuditar] = useState(null)
 
   const cargarPrestamos = async () => {
-
     try {
-
       const data = await obtenerPrestamos()
-
       setPrestamos(data)
-
     } catch (error) {
-
       console.error(error)
-
     }
   }
 
-  // CARGAR CLIENTES
-  const cargarClientes = async () => {
-
-    try {
-
-      const data = await obtenerClientes()
-
-      setClientes(data)
-
-    } catch (error) {
-
-      console.error(error)
-
-    }
-  }
-
-  // GUARDAR
-
-  const guardarPrestamo = async (prestamo) => {
-
-    try {
-
-      // UPDATE
-
-      if (prestamo.id) {
-
-        await actualizarPrestamo(
-          prestamo.id,
-          prestamo
-        )
-
-      }
-
-
-      else {
-
-        await crearPrestamo(prestamo)
-
-      }
-
-      cargarPrestamos()
-
-    } catch (error) {
-
-      console.error(error)
-
-    }
-  }
-  // ELIMINAR
+  useEffect(() => {
+    cargarPrestamos()
+  }, [])
 
   const borrarPrestamo = async (id) => {
-
     try {
-
       await eliminarPrestamo(id)
-
       cargarPrestamos()
-
     } catch (error) {
-
       console.error(error)
-
     }
   }
 
-  // EDITAR
-
-  const editarPrestamo = (prestamo) => {
-
-    setPrestamoEditar(prestamo)
-
-  }
-
-  const [prestamoAuditar,
-  setPrestamoAuditar] =
-  useState(null)
-
-  const actualizarEstadoPrestamo =
-  async (id, estado) => {
-
+  const actualizarEstadoPrestamo = async (id, estado) => {
     try {
+      const prestamo = prestamos.find(p => p.id === id)
 
-      const prestamo =
-        prestamos.find(
-          p => p.id === id
-        )
-
-      const actualizado = {
-
+      await actualizarPrestamo(id, {
         ...prestamo,
-
         estado
+      })
 
-      }
-
-      await actualizarPrestamo(
-        id,
-        actualizado
-      )
-
+      setPrestamoAuditar(null)
       cargarPrestamos()
-
     } catch (error) {
-
       console.error(error)
-
     }
-}
+  }
+
+  const claseEstado = (estado) => {
+    if (estado === "Aprobado") return "badge bg-success"
+    if (estado === "Rechazado") return "badge bg-danger"
+    if (estado === "Solicitar Informacion") return "badge bg-info text-dark"
+    return "badge bg-warning text-dark"
+  }
 
   return (
-
     <AdminLayout>
-
-      {/* HEADER */}
-
       <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold mb-1">
+            Gestion de Prestamos
+          </h2>
 
-        <h2 className="fw-bold">
-          Gestión de Préstamos
-        </h2>
-
-        <button
-  className="btn btn-primary btn-sm me-2"
-  data-bs-toggle="modal"
-  data-bs-target="#modalAuditoria"
-  onClick={() =>
-    setPrestamoAuditar(prestamo)
-  }
->
-
-  <i className="bi bi-shield-lock me-1"></i>
-
-  Auditar
-
-</button>
-
+          <p className="text-muted mb-0">
+            Revisa solicitudes, estados y acuerdos digitales.
+          </p>
+        </div>
       </div>
 
-      {/* TABLA */}
-
       <div className="card border-0 shadow-sm">
-
         <div className="card-body">
-
           <div className="table-responsive">
-
             <table className="table table-hover align-middle">
-
               <thead className="table-light">
-
                 <tr>
-
                   <th>ID</th>
                   <th>Cliente</th>
                   <th>Monto</th>
-                  <th>Garantía</th>
+                  <th>Cuotas</th>
+                  <th>Cuota mensual</th>
                   <th>Estado</th>
+                  <th>Acuerdo</th>
                   <th>Acciones</th>
-
                 </tr>
-
               </thead>
 
               <tbody>
-
                 {prestamos.map(prestamo => (
-
                   <tr key={prestamo.id}>
-
                     <td>{prestamo.id}</td>
 
+                    <td>{prestamo.cliente?.nombre}</td>
+
+                    <td>S/ {prestamo.monto}</td>
+
+                    <td>{prestamo.cuotas}</td>
+
                     <td>
-                      {prestamo.cliente?.nombre}
+                      S/ {Number(prestamo.cuotaMensual || 0).toFixed(2)}
                     </td>
 
                     <td>
-                      S/ {prestamo.monto}
-                    </td>
-
-                    <td>
-                      {prestamo.garantia}
-                    </td>
-
-                    <td>
-
-                      <span
-                        className={`badge ${
-                          prestamo.estado === "Aprobado"
-                            ? "bg-success"
-                            : prestamo.estado === "Pendiente"
-                            ? "bg-warning text-dark"
-                            : "bg-danger"
-                        }`}
-                      >
+                      <span className={claseEstado(prestamo.estado)}>
                         {prestamo.estado}
                       </span>
-
                     </td>
 
                     <td>
+                      {prestamo.estadoAcuerdo === "Firmado"
+                        ? (
+                          <span className="badge bg-primary">
+                            Firmado
+                          </span>
+                        )
+                        : "Pendiente"}
+                    </td>
 
-                      {/* EDITAR */}
-
+                    <td>
                       <button
-  className="btn btn-primary btn-sm me-2"
-  data-bs-toggle="modal"
-  data-bs-target="#modalAuditoria"
-  onClick={() =>
-    setPrestamoAuditar(prestamo)
-  }
->
-
-  <i className="bi bi-shield-check me-1"></i>
-
-  Auditar
-
-</button>
-
-                      {/* ELIMINAR */}
+                        className="btn btn-primary btn-sm me-2"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalAuditoria"
+                        onClick={() => setPrestamoAuditar(prestamo)}
+                      >
+                        <i className="bi bi-shield-check me-1"></i>
+                        Auditar
+                      </button>
 
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={() =>
-                          borrarPrestamo(prestamo.id)
-                        }
+                        onClick={() => borrarPrestamo(prestamo.id)}
                       >
                         Eliminar
                       </button>
-
                     </td>
-
                   </tr>
-
                 ))}
-
               </tbody>
-
             </table>
-
           </div>
-
         </div>
-
       </div>
 
       <ModalAuditoria
-  prestamo={prestamoAuditar}
-  onActualizarEstado={
-    actualizarEstadoPrestamo
-  }
-/>
-
+        prestamo={prestamoAuditar}
+        onActualizarEstado={actualizarEstadoPrestamo}
+      />
     </AdminLayout>
-
   )
 }
 
