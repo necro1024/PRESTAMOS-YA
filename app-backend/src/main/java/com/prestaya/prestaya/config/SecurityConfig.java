@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -50,6 +52,22 @@ public class SecurityConfig {
                     "/api/auth/register"
                 ).permitAll()
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                        "{\"message\":\"Debes iniciar sesion para continuar.\"}"
+                    );
+                })
+                .accessDeniedHandler((request, response, exception) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                        "{\"message\":\"No tienes permisos para realizar esta accion.\"}"
+                    );
+                })
             )
             .addFilterBefore(
                 jwtFilter,

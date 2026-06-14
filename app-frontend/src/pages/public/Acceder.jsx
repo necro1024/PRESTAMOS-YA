@@ -8,6 +8,31 @@ import {
 } from "../../services/authService"
 import { crearCliente } from "../../services/clienteService"
 
+const obtenerMensajeLogin = (error) => {
+  const status = error.response?.status
+  const mensajeBackend =
+    error.response?.data?.message ||
+    error.response?.data?.detail
+
+  if (mensajeBackend) {
+    return mensajeBackend
+  }
+
+  if (status === 401 || status === 403) {
+    return "Correo o contrasena incorrectos."
+  }
+
+  if (status === 423) {
+    return "La cuenta esta bloqueada temporalmente."
+  }
+
+  if (!error.response) {
+    return "No se pudo conectar con el servidor."
+  }
+
+  return "No se pudo iniciar sesion."
+}
+
 function Acceder() {
   const navigate = useNavigate()
 
@@ -71,12 +96,7 @@ function Acceder() {
       )
     } catch (error) {
       console.error(error)
-      setLoginError(
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        error.message ||
-        "Usuario o contrasena incorrectos"
-      )
+      setLoginError(obtenerMensajeLogin(error))
     } finally {
       setLoginLoading(false)
     }
@@ -197,7 +217,7 @@ function Acceder() {
                       <form onSubmit={iniciarSesion}>
                         <div className="mb-3">
                           <label className="form-label">
-                            Usuario
+                            Correo
                           </label>
 
                           <input
@@ -208,6 +228,8 @@ function Acceder() {
                             }`}
                             value={loginData.username}
                             onChange={handleLoginChange}
+                            autoComplete="username"
+                            placeholder="correo@ejemplo.com o admin"
                             aria-invalid={Boolean(loginError)}
                             required
                           />
@@ -226,6 +248,7 @@ function Acceder() {
                             }`}
                             value={loginData.password}
                             onChange={handleLoginChange}
+                            autoComplete="current-password"
                             aria-invalid={Boolean(loginError)}
                             aria-describedby="loginError"
                             required

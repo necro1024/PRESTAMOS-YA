@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,32 +36,42 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, Object> login(
+    public ResponseEntity<Map<String, Object>> login(
             @RequestBody LoginDTO dto) {
 
-        LoginResponse response =
-                handler.handle(
-                        new LoginCommand(
-                                dto.getUsername(),
-                                dto.getPassword()
-                        )
-                );
+        try {
+            LoginResponse response =
+                    handler.handle(
+                            new LoginCommand(
+                                    dto.getUsername(),
+                                    dto.getPassword()
+                            )
+                    );
 
-        return crearRespuesta(response);
+            return ResponseEntity.ok(
+                    crearRespuesta(response));
+        } catch (ResponseStatusException exception) {
+            return crearRespuestaError(exception);
+        }
     }
 
     @PostMapping("/register")
-    public Map<String, Object> register(
+    public ResponseEntity<Map<String, Object>> register(
             @RequestBody RegisterDTO dto) {
 
-        LoginResponse response =
-                authService.registrar(
-                        dto.getNombre(),
-                        dto.getUsername(),
-                        dto.getPassword()
-                );
+        try {
+            LoginResponse response =
+                    authService.registrar(
+                            dto.getNombre(),
+                            dto.getUsername(),
+                            dto.getPassword()
+                    );
 
-        return crearRespuesta(response);
+            return ResponseEntity.ok(
+                    crearRespuesta(response));
+        } catch (ResponseStatusException exception) {
+            return crearRespuestaError(exception);
+        }
     }
 
     private Map<String, Object> crearRespuesta(
@@ -85,5 +97,20 @@ public class AuthController {
                 loginResponse.getClienteId());
 
         return response;
+    }
+
+    private ResponseEntity<Map<String, Object>> crearRespuestaError(
+            ResponseStatusException exception) {
+
+        String message = exception.getReason() != null
+                ? exception.getReason()
+                : "No se pudo procesar la solicitud";
+
+        return ResponseEntity
+                .status(exception.getStatusCode())
+                .body(Map.of(
+                        "status", exception.getStatusCode().value(),
+                        "message", message
+                ));
     }
 }
