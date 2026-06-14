@@ -7,7 +7,7 @@ const location = useLocation()
 return (
 
     <div
-    className="bg-dark text-white p-3"
+    className="bg-dark text-white p-3 d-flex flex-column"
     style={{
         width: "260px",
         minHeight: "100vh"
@@ -101,7 +101,31 @@ return (
 
         </li>
 
+        <li className="nav-item mt-2">
+
+        <Link
+            to="/admin/auditorias"
+            className={`nav-link text-white ${
+            location.pathname === "/admin/auditorias"
+                ? "bg-primary rounded"
+                : ""
+            }`}
+        >
+            <i className="bi bi-journal-check me-2"></i>
+            Auditorias
+        </Link>
+
+        </li>
+
     </ul>
+
+    <Link
+        to="/"
+        className="btn btn-outline-light w-100 mt-auto"
+    >
+        <i className="bi bi-house-door me-2"></i>
+        Ir al inicio
+    </Link>
 
     </div>
 )

@@ -80,10 +80,6 @@ function MisPrestamos() {
           </div>
 
           <div className="d-flex gap-2">
-            <Link to="/" className="btn btn-outline-secondary">
-              Inicio
-            </Link>
-
             <Link to="/garantia" className="btn btn-primary">
               Solicitar nuevo prestamo
             </Link>

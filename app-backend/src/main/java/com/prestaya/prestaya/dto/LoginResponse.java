@@ -6,6 +6,7 @@ public class LoginResponse {
     private String username;
     private String nombre;
     private String rol;
+    private Long clienteId;
 
     public LoginResponse() {
     }
@@ -14,12 +15,14 @@ public class LoginResponse {
             String token,
             String username,
             String nombre,
-            String rol) {
+            String rol,
+            Long clienteId) {
 
         this.token = token;
         this.username = username;
         this.nombre = nombre;
         this.rol = rol;
+        this.clienteId = clienteId;
     }
 
     public String getToken() {
@@ -56,5 +59,13 @@ public class LoginResponse {
     public void setRol(
             String rol) {
         this.rol = rol;
+    }
+
+    public Long getClienteId() {
+        return clienteId;
+    }
+
+    public void setClienteId(Long clienteId) {
+        this.clienteId = clienteId;
     }
 }

@@ -1,8 +1,10 @@
 package com.prestaya.prestaya.controller;
 
 import com.prestaya.prestaya.model.Prestamo;
+import com.prestaya.prestaya.service.AuditoriaService;
 import com.prestaya.prestaya.service.PrestamoService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,18 +16,26 @@ public class PrestamoController {
 
     private final PrestamoService service;
 
+    private final AuditoriaService auditoriaService;
+
     public PrestamoController(
-            PrestamoService service) {
+            PrestamoService service,
+            AuditoriaService auditoriaService) {
 
         this.service = service;
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Prestamo> listar() {
         return service.listar();
     }
 
     @GetMapping("/cliente/{clienteId}")
+    @PreAuthorize(
+        "@authorizationService.puedeAccederCliente(#clienteId, authentication)"
+    )
     public List<Prestamo> listarPorCliente(
             @PathVariable Long clienteId) {
 
@@ -33,6 +43,10 @@ public class PrestamoController {
     }
 
     @PostMapping
+    @PreAuthorize(
+        "hasRole('CLIENTE') && "
+        + "@authorizationService.puedeCrearPrestamo(#prestamo, authentication)"
+    )
     public Prestamo guardar(
             @RequestBody Prestamo prestamo) {
 
@@ -40,14 +54,30 @@ public class PrestamoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Prestamo actualizar(
             @PathVariable Long id,
             @RequestBody Prestamo prestamo) {
 
-        return service.actualizar(id, prestamo);
+        Prestamo actualizado =
+                service.actualizar(id, prestamo);
+
+        if (actualizado != null) {
+            auditoriaService.registrarPrestamo(
+                    actualizado,
+                    actualizado.getEstado(),
+                    "El comite de riesgos registro una decision sobre el prestamo."
+            );
+        }
+
+        return actualizado;
     }
 
     @PutMapping("/{id}/firmar")
+    @PreAuthorize(
+        "hasRole('CLIENTE') && "
+        + "@authorizationService.puedeAccederPrestamo(#id, authentication)"
+    )
     public Prestamo firmarAcuerdo(
             @PathVariable Long id,
             @RequestBody Prestamo prestamo) {
@@ -56,6 +86,7 @@ public class PrestamoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void eliminar(@PathVariable Long id) {
 
         service.eliminar(id);

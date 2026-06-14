@@ -3,11 +3,15 @@ package com.prestaya.prestaya.controller;
 import com.prestaya.prestaya.application.command.auth.LoginCommand;
 import com.prestaya.prestaya.application.command.auth.LoginCommandHandler;
 import com.prestaya.prestaya.dto.LoginDTO;
-
 import com.prestaya.prestaya.dto.LoginResponse;
 import com.prestaya.prestaya.dto.RegisterDTO;
 import com.prestaya.prestaya.service.AuthService;
-import org.springframework.web.bind.annotation.*;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,95 +26,63 @@ public class AuthController {
     private final AuthService authService;
 
     public AuthController(
-        LoginCommandHandler handler,
-        AuthService authService) {
+            LoginCommandHandler handler,
+            AuthService authService) {
 
-    this.handler = handler;
-    this.authService = authService;
-}
+        this.handler = handler;
+        this.authService = authService;
+    }
 
     @PostMapping("/login")
-    public Map<String, String> login(
+    public Map<String, Object> login(
             @RequestBody LoginDTO dto) {
 
-        LoginCommand command =
-        new LoginCommand(
-                dto.getUsername(),
-                dto.getPassword()
-        );
+        LoginResponse response =
+                handler.handle(
+                        new LoginCommand(
+                                dto.getUsername(),
+                                dto.getPassword()
+                        )
+                );
 
-LoginResponse responseLogin =
-        handler.handle(command);
-
-        Map<String, String> response =
-                new HashMap<>();
-
-        if (responseLogin == null) {
-
-            response.put(
-                "error",
-                "Credenciales inválidas"
-            );
-
-            return response;
-        }
-
-        response.put(
-        "token",
-        responseLogin.getToken()
-);
-
-response.put(
-        "username",
-        responseLogin.getUsername()
-);
-
-response.put(
-        "nombre",
-        responseLogin.getNombre()
-);
-
-response.put(
-        "rol",
-        responseLogin.getRol()
-);
-
-return response;
+        return crearRespuesta(response);
     }
 
     @PostMapping("/register")
-    public Map<String, String> register(
+    public Map<String, Object> register(
             @RequestBody RegisterDTO dto) {
 
-        LoginResponse responseRegister =
+        LoginResponse response =
                 authService.registrar(
                         dto.getNombre(),
                         dto.getUsername(),
                         dto.getPassword()
                 );
 
-        Map<String, String> response =
+        return crearRespuesta(response);
+    }
+
+    private Map<String, Object> crearRespuesta(
+            LoginResponse loginResponse) {
+
+        Map<String, Object> response =
                 new HashMap<>();
 
         response.put(
                 "token",
-                responseRegister.getToken()
-        );
-
+                loginResponse.getToken());
         response.put(
                 "username",
-                responseRegister.getUsername()
-        );
-
+                loginResponse.getUsername());
         response.put(
                 "nombre",
-                responseRegister.getNombre()
-        );
-
+                loginResponse.getNombre());
         response.put(
                 "rol",
-                responseRegister.getRol()
-        );
+                loginResponse.getRol());
+        response.put(
+                "clienteId",
+                loginResponse.getClienteId());
 
         return response;
     }

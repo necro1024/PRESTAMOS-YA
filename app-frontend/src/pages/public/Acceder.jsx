@@ -16,6 +16,10 @@ function Acceder() {
     password: ""
   })
 
+  const [loginError, setLoginError] = useState("")
+
+  const [loginLoading, setLoginLoading] = useState(false)
+
   const [register, setRegister] = useState({
     nombre: "",
     dni: "",
@@ -25,6 +29,8 @@ function Acceder() {
   })
 
   const handleLoginChange = (e) => {
+    setLoginError("")
+
     setLoginData({
       ...loginData,
       [e.target.name]: e.target.value
@@ -40,6 +46,8 @@ function Acceder() {
 
   const iniciarSesion = async (e) => {
     e.preventDefault()
+    setLoginError("")
+    setLoginLoading(true)
 
     try {
       const response = await loginBackend(loginData)
@@ -52,7 +60,8 @@ function Acceder() {
         token: response.token,
         username: response.username,
         nombre: response.nombre,
-        rol: response.rol
+        rol: response.rol,
+        clienteId: response.clienteId
       })
 
       navigate(
@@ -61,36 +70,15 @@ function Acceder() {
           : "/solicitar"
       )
     } catch (error) {
-      if (
-        loginData.username === "admin" &&
-        loginData.password === "admin123"
-      ) {
-        login({
-          username: "admin",
-          nombre: "Administrador",
-          rol: "ADMIN"
-        })
-
-        navigate("/admin/dashboard")
-        return
-      }
-
-      if (
-        loginData.username === "cliente" &&
-        loginData.password === "cliente123"
-      ) {
-        login({
-          username: "cliente",
-          nombre: "Cliente",
-          rol: "CLIENTE"
-        })
-
-        navigate("/solicitar")
-        return
-      }
-
       console.error(error)
-      alert("Credenciales invalidas")
+      setLoginError(
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Usuario o contrasena incorrectos"
+      )
+    } finally {
+      setLoginLoading(false)
     }
   }
 
@@ -102,6 +90,13 @@ function Acceder() {
         nombre: register.nombre,
         username: register.correo,
         password: register.password
+      })
+
+      login({
+        token: usuarioAuth.token,
+        username: usuarioAuth.username,
+        rol: usuarioAuth.rol,
+        nombre: usuarioAuth.nombre
       })
 
       const cliente = await crearCliente({
@@ -208,9 +203,13 @@ function Acceder() {
                           <input
                             type="text"
                             name="username"
-                            className="form-control"
+                            className={`form-control ${
+                              loginError ? "is-invalid" : ""
+                            }`}
                             value={loginData.username}
                             onChange={handleLoginChange}
+                            aria-invalid={Boolean(loginError)}
+                            required
                           />
                         </div>
 
@@ -222,17 +221,35 @@ function Acceder() {
                           <input
                             type="password"
                             name="password"
-                            className="form-control"
+                            className={`form-control ${
+                              loginError ? "is-invalid" : ""
+                            }`}
                             value={loginData.password}
                             onChange={handleLoginChange}
+                            aria-invalid={Boolean(loginError)}
+                            aria-describedby="loginError"
+                            required
                           />
+
+                          {loginError && (
+                            <div
+                              id="loginError"
+                              className="invalid-feedback"
+                            >
+                              <i className="bi bi-exclamation-circle me-1"></i>
+                              {loginError}
+                            </div>
+                          )}
                         </div>
 
                         <button
                           type="submit"
                           className="btn btn-primary btn-lg w-100"
+                          disabled={loginLoading}
                         >
-                          Ingresar
+                          {loginLoading
+                            ? "Verificando..."
+                            : "Ingresar"}
                         </button>
                       </form>
                     </div>

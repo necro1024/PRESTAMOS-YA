@@ -4,6 +4,7 @@ import com.prestaya.prestaya.repository.ClienteRepository;
 import com.prestaya.prestaya.repository.GarantiaRepository;
 import com.prestaya.prestaya.repository.PrestamoRepository;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/dashboard")
 @CrossOrigin("*")
+@PreAuthorize("hasRole('ADMIN')")
 public class DashboardController {
 
     private final ClienteRepository clienteRepository;

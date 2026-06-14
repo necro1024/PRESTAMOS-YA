@@ -1,0 +1,394 @@
+-- ============================================================
+-- PRESTAYA - BASE DE DATOS COMPLETA
+-- MySQL 8+
+--
+-- Este script elimina completamente la base prestaya y vuelve
+-- a crearla con la estructura final del proyecto.
+--
+-- Credenciales demo:
+--   Administrador: admin / admin123
+--   Cliente:       cliente / cliente123
+-- ============================================================
+
+DROP DATABASE IF EXISTS prestaya;
+
+CREATE DATABASE prestaya
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE prestaya;
+
+
+-- ============================================================
+-- TABLA: USUARIOS
+-- Autenticacion, roles y bloqueo por intentos fallidos.
+-- ============================================================
+
+CREATE TABLE usuarios (
+
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+    username VARCHAR(100) NOT NULL,
+
+    nombre VARCHAR(150) NOT NULL,
+
+    password VARCHAR(255) NOT NULL,
+
+    rol ENUM('ADMIN', 'CLIENTE') NOT NULL,
+
+    intentos_fallidos INT NOT NULL DEFAULT 0,
+
+    bloqueado_hasta DATETIME NULL,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT uk_usuarios_username
+        UNIQUE (username)
+
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+-- TABLA: CLIENTES
+-- El correo debe coincidir con username para relacionar la
+-- sesion autenticada con el perfil del cliente.
+-- ============================================================
+
+CREATE TABLE clientes (
+
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+    nombre VARCHAR(150) NOT NULL,
+
+    dni VARCHAR(20) NOT NULL,
+
+    correo VARCHAR(150) NOT NULL,
+
+    telefono VARCHAR(20),
+
+    estado VARCHAR(50) NOT NULL DEFAULT 'Activo',
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT uk_clientes_dni
+        UNIQUE (dni),
+
+    CONSTRAINT uk_clientes_correo
+        UNIQUE (correo)
+
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+-- TABLA: PRESTAMOS
+-- Incluye simulacion financiera y acuerdo digital.
+-- ============================================================
+
+CREATE TABLE prestamos (
+
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+    monto DOUBLE NOT NULL,
+
+    garantia VARCHAR(255),
+
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
+
+    cuotas INT NOT NULL DEFAULT 12,
+
+    interes_anual DOUBLE NOT NULL DEFAULT 18,
+
+    cuota_mensual DOUBLE,
+
+    total_pagar DOUBLE,
+
+    acuerdo_digital VARCHAR(2000),
+
+    estado_acuerdo VARCHAR(255) NOT NULL DEFAULT 'Pendiente',
+
+    fecha_firma DATETIME NULL,
+
+    cliente_id BIGINT NOT NULL,
+
+    PRIMARY KEY (id),
+
+    INDEX idx_prestamos_cliente (cliente_id),
+
+    INDEX idx_prestamos_estado (estado),
+
+    CONSTRAINT fk_prestamos_cliente
+        FOREIGN KEY (cliente_id)
+        REFERENCES clientes(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+-- TABLA: GARANTIAS
+-- Activos digitales, documentos y resultado de evaluacion.
+-- ============================================================
+
+CREATE TABLE garantias (
+
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+    tipo VARCHAR(255),
+
+    nombre_activo VARCHAR(255),
+
+    identificador VARCHAR(255),
+
+    correo_titular VARCHAR(255),
+
+    fecha_inicio VARCHAR(255),
+
+    valor_estimado DOUBLE,
+
+    ingresos_mensuales DOUBLE,
+
+    identificacion_personal VARCHAR(1000),
+
+    documentacion_personal VARCHAR(1000),
+
+    historial_crediticio VARCHAR(1000),
+
+    comprobantes_ingresos VARCHAR(1000),
+
+    comprobante_activo VARCHAR(1000),
+
+    estado VARCHAR(255) NOT NULL DEFAULT 'Pendiente',
+
+    puntuacion INT NULL,
+
+    nivel_riesgo VARCHAR(255),
+
+    recomendacion VARCHAR(255),
+
+    resultado_evaluacion VARCHAR(2000),
+
+    prestamo_id BIGINT NOT NULL,
+
+    PRIMARY KEY (id),
+
+    INDEX idx_garantias_prestamo (prestamo_id),
+
+    INDEX idx_garantias_estado (estado),
+
+    CONSTRAINT fk_garantias_prestamo
+        FOREIGN KEY (prestamo_id)
+        REFERENCES prestamos(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+-- TABLA: AUDITORIAS
+-- Registro historico de solo lectura desde la aplicacion.
+-- No posee claves foraneas para conservar IDs historicos aunque
+-- una entidad operativa sea eliminada posteriormente.
+-- ============================================================
+
+CREATE TABLE auditorias (
+
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+    usuario VARCHAR(255) NOT NULL,
+
+    nombre_usuario VARCHAR(255),
+
+    accion VARCHAR(255) NOT NULL,
+
+    entidad VARCHAR(255) NOT NULL,
+
+    entidad_id BIGINT,
+
+    garantia_id BIGINT,
+
+    prestamo_id BIGINT,
+
+    cliente VARCHAR(255),
+
+    resultado VARCHAR(255),
+
+    detalle VARCHAR(2000),
+
+    fecha_hora DATETIME NOT NULL,
+
+    PRIMARY KEY (id),
+
+    INDEX idx_auditorias_fecha (fecha_hora),
+
+    INDEX idx_auditorias_usuario (usuario),
+
+    INDEX idx_auditorias_garantia (garantia_id),
+
+    INDEX idx_auditorias_prestamo (prestamo_id)
+
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+-- USUARIOS INICIALES
+--
+-- Los valores password son hashes BCrypt.
+-- ============================================================
+
+INSERT INTO usuarios (
+    username,
+    nombre,
+    password,
+    rol,
+    intentos_fallidos,
+    bloqueado_hasta
+)
+VALUES
+(
+    'admin',
+    'Administrador',
+    '$2a$10$PsH8Nch9dCHuSo2DiLGqTOcvD4xRVG5vAEMkLoh1sIgs1u9RS1SCC',
+    'ADMIN',
+    0,
+    NULL
+),
+(
+    'cliente',
+    'Cliente Demo',
+    '$2a$10$VucZ93UQMItTZQmU5yxteu9eC70Ra2WzFu6L1IHTcQ9Rdq0QFXGJy',
+    'CLIENTE',
+    0,
+    NULL
+);
+
+
+-- ============================================================
+-- CLIENTE DEMO
+-- correo = username del usuario autenticado.
+-- ============================================================
+
+INSERT INTO clientes (
+    nombre,
+    dni,
+    correo,
+    telefono,
+    estado
+)
+VALUES (
+    'Cliente Demo',
+    '74589632',
+    'cliente',
+    '987654321',
+    'Activo'
+);
+
+
+-- ============================================================
+-- PRESTAMO DEMO
+-- Monto: 5000
+-- Interes anual: 18%
+-- Plazo: 12 cuotas
+-- Total: 5900
+-- Cuota mensual: 491.67
+-- ============================================================
+
+INSERT INTO prestamos (
+    monto,
+    garantia,
+    estado,
+    cuotas,
+    interes_anual,
+    cuota_mensual,
+    total_pagar,
+    acuerdo_digital,
+    estado_acuerdo,
+    fecha_firma,
+    cliente_id
+)
+VALUES (
+    5000,
+    'Canal YouTube',
+    'Pendiente',
+    12,
+    18,
+    491.6666666667,
+    5900,
+    NULL,
+    'Pendiente',
+    NULL,
+    1
+);
+
+
+-- ============================================================
+-- GARANTIA DIGITAL DEMO
+-- Se deja pendiente y sin score para probar la evaluacion desde
+-- el dashboard del administrador.
+-- ============================================================
+
+INSERT INTO garantias (
+    tipo,
+    nombre_activo,
+    identificador,
+    correo_titular,
+    fecha_inicio,
+    valor_estimado,
+    ingresos_mensuales,
+    identificacion_personal,
+    documentacion_personal,
+    historial_crediticio,
+    comprobantes_ingresos,
+    comprobante_activo,
+    estado,
+    puntuacion,
+    nivel_riesgo,
+    recomendacion,
+    resultado_evaluacion,
+    prestamo_id
+)
+VALUES (
+    'YouTube',
+    'Canal Tech Demo',
+    'https://youtube.com/@canaltest',
+    'cliente',
+    '2024-01-10',
+    15000,
+    1800,
+    'dni_cliente.pdf',
+    'documentacion_cliente.pdf',
+    'historial_crediticio_cliente.pdf',
+    'comprobantes_ingresos_cliente.pdf',
+    'dashboard_youtube_cliente.png',
+    'Pendiente',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    1
+);
+
+
+-- ============================================================
+-- VERIFICACION
+-- ============================================================
+
+SHOW TABLES;
+
+SELECT
+    id,
+    username,
+    nombre,
+    rol,
+    intentos_fallidos,
+    bloqueado_hasta
+FROM usuarios;
+
+SELECT * FROM clientes;
+
+SELECT * FROM prestamos;
+
+SELECT * FROM garantias;
+
+SELECT * FROM auditorias;
