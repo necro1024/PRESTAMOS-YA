@@ -33,6 +33,109 @@ const obtenerMensajeLogin = (error) => {
   return "No se pudo iniciar sesion."
 }
 
+const obtenerEstadoIntentos = (error) => {
+  const data = error.response?.data || {}
+  const status = error.response?.status
+  const mensaje =
+    data.message ||
+    data.detail ||
+    ""
+  const coincidencia =
+    mensaje.match(/Intentos restantes:\s*(\d+)/i)
+  const intentosDesdeMensaje =
+    coincidencia
+      ? Number(coincidencia[1])
+      : null
+
+  return {
+    bloqueado:
+      data.bloqueado === true ||
+      status === 423 ||
+      /cuenta bloqueada/i.test(mensaje),
+    intentosRestantes:
+      Number.isInteger(data.intentosRestantes)
+        ? data.intentosRestantes
+        : intentosDesdeMensaje
+  }
+}
+
+function ModalAvisoLogin({ aviso, onClose }) {
+  if (!aviso) {
+    return null
+  }
+
+  const bloqueado = aviso.tipo === "bloqueado"
+
+  return (
+    <>
+      <div
+        className="modal fade show d-block"
+        tabIndex="-1"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="loginNoticeTitle"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content border-0 shadow">
+            <div
+              className={`modal-header text-white ${
+                bloqueado ? "bg-danger" : "bg-warning"
+              }`}
+            >
+              <h5
+                className={`modal-title ${
+                  bloqueado ? "" : "text-dark"
+                }`}
+                id="loginNoticeTitle"
+              >
+                <i
+                  className={`bi me-2 ${
+                    bloqueado
+                      ? "bi-shield-lock-fill"
+                      : "bi-exclamation-triangle-fill"
+                  }`}
+                ></i>
+                {aviso.titulo}
+              </h5>
+
+              <button
+                type="button"
+                className={`btn-close ${
+                  bloqueado ? "btn-close-white" : ""
+                }`}
+                aria-label="Cerrar"
+                onClick={onClose}
+              ></button>
+            </div>
+
+            <div className="modal-body p-4">
+              <p className="mb-0">
+                {aviso.mensaje}
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className={`btn ${
+                  bloqueado
+                    ? "btn-danger"
+                    : "btn-warning"
+                }`}
+                onClick={onClose}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="modal-backdrop fade show"></div>
+    </>
+  )
+}
+
 function Acceder() {
   const navigate = useNavigate()
 
@@ -44,6 +147,8 @@ function Acceder() {
   const [loginError, setLoginError] = useState("")
 
   const [loginLoading, setLoginLoading] = useState(false)
+
+  const [loginAviso, setLoginAviso] = useState(null)
 
   const [register, setRegister] = useState({
     nombre: "",
@@ -75,7 +180,10 @@ function Acceder() {
     setLoginLoading(true)
 
     try {
-      const response = await loginBackend(loginData)
+      const response = await loginBackend({
+        ...loginData,
+        username: loginData.username.trim()
+      })
 
       if (response.error) {
         throw new Error(response.error)
@@ -96,7 +204,29 @@ function Acceder() {
       )
     } catch (error) {
       console.error(error)
-      setLoginError(obtenerMensajeLogin(error))
+      const mensaje = obtenerMensajeLogin(error)
+      const estadoIntentos =
+        obtenerEstadoIntentos(error)
+
+      setLoginError(mensaje)
+
+      if (estadoIntentos.bloqueado) {
+        setLoginAviso({
+          tipo: "bloqueado",
+          titulo: "Cuenta bloqueada",
+          mensaje:
+            "Tu cuenta ha sido bloqueada durante 15 minutos por superar los cinco intentos permitidos."
+        })
+      } else if (
+        estadoIntentos.intentosRestantes === 3
+      ) {
+        setLoginAviso({
+          tipo: "advertencia",
+          titulo: "Intentos de acceso",
+          mensaje:
+            "Has realizado dos intentos fallidos. Te quedan tres intentos antes de que la cuenta sea bloqueada."
+        })
+      }
     } finally {
       setLoginLoading(false)
     }
@@ -146,8 +276,9 @@ function Acceder() {
   }
 
   return (
-    <div className="bg-light min-vh-100 d-flex align-items-center">
-      <div className="container">
+    <>
+      <div className="bg-light min-vh-100 d-flex align-items-center">
+        <div className="container">
         <div className="row justify-content-center">
           <div className="col-lg-10">
             <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
@@ -230,6 +361,8 @@ function Acceder() {
                             onChange={handleLoginChange}
                             autoComplete="username"
                             placeholder="correo@ejemplo.com o admin"
+                            autoCapitalize="none"
+                            spellCheck="false"
                             aria-invalid={Boolean(loginError)}
                             required
                           />
@@ -374,8 +507,14 @@ function Acceder() {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+
+      <ModalAvisoLogin
+        aviso={loginAviso}
+        onClose={() => setLoginAviso(null)}
+      />
+    </>
   )
 }
 

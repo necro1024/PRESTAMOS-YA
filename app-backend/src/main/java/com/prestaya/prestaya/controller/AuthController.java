@@ -17,11 +17,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin("*")
 public class AuthController {
+
+    private static final Pattern INTENTOS_RESTANTES =
+            Pattern.compile("Intentos restantes: (\\d+)");
 
     private final LoginCommandHandler handler;
 
@@ -106,11 +111,27 @@ public class AuthController {
                 ? exception.getReason()
                 : "No se pudo procesar la solicitud";
 
+        int status = exception.getStatusCode().value();
+        Map<String, Object> body = new HashMap<>();
+
+        body.put("status", status);
+        body.put("message", message);
+        body.put("bloqueado", status == 423);
+
+        Matcher matcher =
+                INTENTOS_RESTANTES.matcher(message);
+
+        if (matcher.find()) {
+            body.put(
+                    "intentosRestantes",
+                    Integer.parseInt(matcher.group(1))
+            );
+        } else if (status == 423) {
+            body.put("intentosRestantes", 0);
+        }
+
         return ResponseEntity
                 .status(exception.getStatusCode())
-                .body(Map.of(
-                        "status", exception.getStatusCode().value(),
-                        "message", message
-                ));
+                .body(body);
     }
 }
