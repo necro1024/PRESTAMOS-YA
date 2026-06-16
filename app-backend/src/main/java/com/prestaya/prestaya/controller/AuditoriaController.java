@@ -1,7 +1,8 @@
 package com.prestaya.prestaya.controller;
 
+import com.prestaya.prestaya.application.query.auditoria.ListarAuditoriasQuery;
+import com.prestaya.prestaya.application.query.auditoria.ListarAuditoriasQueryHandler;
 import com.prestaya.prestaya.model.Auditoria;
-import com.prestaya.prestaya.service.AuditoriaService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,17 +16,21 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AuditoriaController {
 
-    private final AuditoriaService service;
+    private final ListarAuditoriasQueryHandler
+            listarAuditoriasQueryHandler;
 
     public AuditoriaController(
-            AuditoriaService service) {
+            ListarAuditoriasQueryHandler
+                    listarAuditoriasQueryHandler) {
 
-        this.service = service;
+        this.listarAuditoriasQueryHandler =
+                listarAuditoriasQueryHandler;
     }
 
     @GetMapping
     public List<Auditoria> listar() {
 
-        return service.listar();
+        return listarAuditoriasQueryHandler.handle(
+                new ListarAuditoriasQuery());
     }
 }

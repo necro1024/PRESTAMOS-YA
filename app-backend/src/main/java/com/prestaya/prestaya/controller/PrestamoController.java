@@ -1,8 +1,18 @@
 package com.prestaya.prestaya.controller;
 
+import com.prestaya.prestaya.application.command.prestamo.ActualizarPrestamoCommand;
+import com.prestaya.prestaya.application.command.prestamo.ActualizarPrestamoCommandHandler;
+import com.prestaya.prestaya.application.command.prestamo.CrearPrestamoCommand;
+import com.prestaya.prestaya.application.command.prestamo.CrearPrestamoCommandHandler;
+import com.prestaya.prestaya.application.command.prestamo.EliminarPrestamoCommand;
+import com.prestaya.prestaya.application.command.prestamo.EliminarPrestamoCommandHandler;
+import com.prestaya.prestaya.application.command.prestamo.FirmarAcuerdoCommand;
+import com.prestaya.prestaya.application.command.prestamo.FirmarAcuerdoCommandHandler;
+import com.prestaya.prestaya.application.query.prestamo.ListarPrestamosPorClienteQuery;
+import com.prestaya.prestaya.application.query.prestamo.ListarPrestamosPorClienteQueryHandler;
+import com.prestaya.prestaya.application.query.prestamo.ListarPrestamosQuery;
+import com.prestaya.prestaya.application.query.prestamo.ListarPrestamosQueryHandler;
 import com.prestaya.prestaya.model.Prestamo;
-import com.prestaya.prestaya.service.AuditoriaService;
-import com.prestaya.prestaya.service.PrestamoService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,22 +24,51 @@ import java.util.List;
 @CrossOrigin("*")
 public class PrestamoController {
 
-    private final PrestamoService service;
+    private final ListarPrestamosQueryHandler listarPrestamosQueryHandler;
 
-    private final AuditoriaService auditoriaService;
+    private final ListarPrestamosPorClienteQueryHandler
+            listarPrestamosPorClienteQueryHandler;
+
+    private final CrearPrestamoCommandHandler crearPrestamoCommandHandler;
+
+    private final ActualizarPrestamoCommandHandler
+            actualizarPrestamoCommandHandler;
+
+    private final FirmarAcuerdoCommandHandler firmarAcuerdoCommandHandler;
+
+    private final EliminarPrestamoCommandHandler
+            eliminarPrestamoCommandHandler;
 
     public PrestamoController(
-            PrestamoService service,
-            AuditoriaService auditoriaService) {
+            ListarPrestamosQueryHandler listarPrestamosQueryHandler,
+            ListarPrestamosPorClienteQueryHandler
+                    listarPrestamosPorClienteQueryHandler,
+            CrearPrestamoCommandHandler crearPrestamoCommandHandler,
+            ActualizarPrestamoCommandHandler
+                    actualizarPrestamoCommandHandler,
+            FirmarAcuerdoCommandHandler firmarAcuerdoCommandHandler,
+            EliminarPrestamoCommandHandler
+                    eliminarPrestamoCommandHandler) {
 
-        this.service = service;
-        this.auditoriaService = auditoriaService;
+        this.listarPrestamosQueryHandler =
+                listarPrestamosQueryHandler;
+        this.listarPrestamosPorClienteQueryHandler =
+                listarPrestamosPorClienteQueryHandler;
+        this.crearPrestamoCommandHandler =
+                crearPrestamoCommandHandler;
+        this.actualizarPrestamoCommandHandler =
+                actualizarPrestamoCommandHandler;
+        this.firmarAcuerdoCommandHandler =
+                firmarAcuerdoCommandHandler;
+        this.eliminarPrestamoCommandHandler =
+                eliminarPrestamoCommandHandler;
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<Prestamo> listar() {
-        return service.listar();
+        return listarPrestamosQueryHandler.handle(
+                new ListarPrestamosQuery());
     }
 
     @GetMapping("/cliente/{clienteId}")
@@ -39,7 +78,8 @@ public class PrestamoController {
     public List<Prestamo> listarPorCliente(
             @PathVariable Long clienteId) {
 
-        return service.listarPorCliente(clienteId);
+        return listarPrestamosPorClienteQueryHandler.handle(
+                new ListarPrestamosPorClienteQuery(clienteId));
     }
 
     @PostMapping
@@ -50,7 +90,8 @@ public class PrestamoController {
     public Prestamo guardar(
             @RequestBody Prestamo prestamo) {
 
-        return service.guardar(prestamo);
+        return crearPrestamoCommandHandler.handle(
+                new CrearPrestamoCommand(prestamo));
     }
 
     @PutMapping("/{id}")
@@ -59,18 +100,8 @@ public class PrestamoController {
             @PathVariable Long id,
             @RequestBody Prestamo prestamo) {
 
-        Prestamo actualizado =
-                service.actualizar(id, prestamo);
-
-        if (actualizado != null) {
-            auditoriaService.registrarPrestamo(
-                    actualizado,
-                    actualizado.getEstado(),
-                    "El comite de riesgos registro una decision sobre el prestamo."
-            );
-        }
-
-        return actualizado;
+        return actualizarPrestamoCommandHandler.handle(
+                new ActualizarPrestamoCommand(id, prestamo));
     }
 
     @PutMapping("/{id}/firmar")
@@ -82,13 +113,15 @@ public class PrestamoController {
             @PathVariable Long id,
             @RequestBody Prestamo prestamo) {
 
-        return service.firmarAcuerdo(id, prestamo);
+        return firmarAcuerdoCommandHandler.handle(
+                new FirmarAcuerdoCommand(id, prestamo));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public void eliminar(@PathVariable Long id) {
 
-        service.eliminar(id);
+        eliminarPrestamoCommandHandler.handle(
+                new EliminarPrestamoCommand(id));
     }
 }

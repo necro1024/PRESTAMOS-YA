@@ -1,9 +1,18 @@
 package com.prestaya.prestaya.controller;
 
+import com.prestaya.prestaya.application.command.garantia.ActualizarGarantiaCommand;
+import com.prestaya.prestaya.application.command.garantia.ActualizarGarantiaCommandHandler;
+import com.prestaya.prestaya.application.command.garantia.CrearGarantiaCommand;
+import com.prestaya.prestaya.application.command.garantia.CrearGarantiaCommandHandler;
+import com.prestaya.prestaya.application.command.garantia.EliminarGarantiaCommand;
+import com.prestaya.prestaya.application.command.garantia.EliminarGarantiaCommandHandler;
+import com.prestaya.prestaya.application.command.garantia.EvaluarGarantiaCommand;
+import com.prestaya.prestaya.application.command.garantia.EvaluarGarantiaCommandHandler;
+import com.prestaya.prestaya.application.query.garantia.ListarGarantiasPorPrestamoQuery;
+import com.prestaya.prestaya.application.query.garantia.ListarGarantiasPorPrestamoQueryHandler;
+import com.prestaya.prestaya.application.query.garantia.ListarGarantiasQuery;
+import com.prestaya.prestaya.application.query.garantia.ListarGarantiasQueryHandler;
 import com.prestaya.prestaya.model.Garantia;
-
-import com.prestaya.prestaya.service.GarantiaService;
-import com.prestaya.prestaya.service.AuditoriaService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,23 +24,58 @@ import java.util.List;
 @CrossOrigin("*")
 public class GarantiaController {
 
-    private final GarantiaService service;
+    private final ListarGarantiasQueryHandler
+            listarGarantiasQueryHandler;
 
-    private final AuditoriaService auditoriaService;
+    private final ListarGarantiasPorPrestamoQueryHandler
+            listarGarantiasPorPrestamoQueryHandler;
+
+    private final CrearGarantiaCommandHandler
+            crearGarantiaCommandHandler;
+
+    private final ActualizarGarantiaCommandHandler
+            actualizarGarantiaCommandHandler;
+
+    private final EvaluarGarantiaCommandHandler
+            evaluarGarantiaCommandHandler;
+
+    private final EliminarGarantiaCommandHandler
+            eliminarGarantiaCommandHandler;
 
     public GarantiaController(
-            GarantiaService service,
-            AuditoriaService auditoriaService) {
+            ListarGarantiasQueryHandler
+                    listarGarantiasQueryHandler,
+            ListarGarantiasPorPrestamoQueryHandler
+                    listarGarantiasPorPrestamoQueryHandler,
+            CrearGarantiaCommandHandler
+                    crearGarantiaCommandHandler,
+            ActualizarGarantiaCommandHandler
+                    actualizarGarantiaCommandHandler,
+            EvaluarGarantiaCommandHandler
+                    evaluarGarantiaCommandHandler,
+            EliminarGarantiaCommandHandler
+                    eliminarGarantiaCommandHandler) {
 
-        this.service = service;
-        this.auditoriaService = auditoriaService;
+        this.listarGarantiasQueryHandler =
+                listarGarantiasQueryHandler;
+        this.listarGarantiasPorPrestamoQueryHandler =
+                listarGarantiasPorPrestamoQueryHandler;
+        this.crearGarantiaCommandHandler =
+                crearGarantiaCommandHandler;
+        this.actualizarGarantiaCommandHandler =
+                actualizarGarantiaCommandHandler;
+        this.evaluarGarantiaCommandHandler =
+                evaluarGarantiaCommandHandler;
+        this.eliminarGarantiaCommandHandler =
+                eliminarGarantiaCommandHandler;
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<Garantia> listar() {
 
-        return service.listar();
+        return listarGarantiasQueryHandler.handle(
+                new ListarGarantiasQuery());
     }
 
     @GetMapping("/prestamo/{prestamoId}")
@@ -41,8 +85,8 @@ public class GarantiaController {
     public List<Garantia> listarPorPrestamo(
             @PathVariable Long prestamoId) {
 
-        return service.listarPorPrestamo(
-                prestamoId);
+        return listarGarantiasPorPrestamoQueryHandler.handle(
+                new ListarGarantiasPorPrestamoQuery(prestamoId));
     }
 
     @PostMapping
@@ -53,7 +97,8 @@ public class GarantiaController {
     public Garantia guardar(
             @RequestBody Garantia garantia) {
 
-        return service.guardar(garantia);
+        return crearGarantiaCommandHandler.handle(
+                new CrearGarantiaCommand(garantia));
     }
 
     @PutMapping("/{id}")
@@ -62,21 +107,8 @@ public class GarantiaController {
             @PathVariable Long id,
             @RequestBody Garantia garantia) {
 
-        Garantia actualizada =
-                service.actualizar(id, garantia);
-
-        if (actualizada != null) {
-            auditoriaService.registrarGarantia(
-                    actualizada,
-                    "DECISION_GARANTIA",
-                    actualizada.getRecomendacion() != null
-                    ? actualizada.getRecomendacion()
-                    : actualizada.getEstado(),
-                    "El administrador actualizo la decision de la garantia."
-            );
-        }
-
-        return actualizada;
+        return actualizarGarantiaCommandHandler.handle(
+                new ActualizarGarantiaCommand(id, garantia));
     }
 
     @PutMapping("/{id}/evaluar")
@@ -84,19 +116,8 @@ public class GarantiaController {
     public Garantia evaluar(
             @PathVariable Long id) {
 
-        Garantia evaluada =
-                service.evaluarActivo(id);
-
-        if (evaluada != null) {
-            auditoriaService.registrarGarantia(
-                    evaluada,
-                    "EVALUACION_GARANTIA",
-                    evaluada.getRecomendacion(),
-                    evaluada.getResultadoEvaluacion()
-            );
-        }
-
-        return evaluada;
+        return evaluarGarantiaCommandHandler.handle(
+                new EvaluarGarantiaCommand(id));
     }
 
     @DeleteMapping("/{id}")
@@ -104,6 +125,7 @@ public class GarantiaController {
     public void eliminar(
             @PathVariable Long id) {
 
-        service.eliminar(id);
+        eliminarGarantiaCommandHandler.handle(
+                new EliminarGarantiaCommand(id));
     }
 }

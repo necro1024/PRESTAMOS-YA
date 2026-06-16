@@ -2,10 +2,11 @@ package com.prestaya.prestaya.controller;
 
 import com.prestaya.prestaya.application.command.auth.LoginCommand;
 import com.prestaya.prestaya.application.command.auth.LoginCommandHandler;
+import com.prestaya.prestaya.application.command.auth.RegistrarUsuarioCommand;
+import com.prestaya.prestaya.application.command.auth.RegistrarUsuarioCommandHandler;
 import com.prestaya.prestaya.dto.LoginDTO;
 import com.prestaya.prestaya.dto.LoginResponse;
 import com.prestaya.prestaya.dto.RegisterDTO;
-import com.prestaya.prestaya.service.AuthService;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,14 +31,17 @@ public class AuthController {
 
     private final LoginCommandHandler handler;
 
-    private final AuthService authService;
+    private final RegistrarUsuarioCommandHandler
+            registrarUsuarioCommandHandler;
 
     public AuthController(
             LoginCommandHandler handler,
-            AuthService authService) {
+            RegistrarUsuarioCommandHandler
+                    registrarUsuarioCommandHandler) {
 
         this.handler = handler;
-        this.authService = authService;
+        this.registrarUsuarioCommandHandler =
+                registrarUsuarioCommandHandler;
     }
 
     @PostMapping("/login")
@@ -66,10 +70,12 @@ public class AuthController {
 
         try {
             LoginResponse response =
-                    authService.registrar(
-                            dto.getNombre(),
-                            dto.getUsername(),
-                            dto.getPassword()
+                    registrarUsuarioCommandHandler.handle(
+                            new RegistrarUsuarioCommand(
+                                    dto.getNombre(),
+                                    dto.getUsername(),
+                                    dto.getPassword()
+                            )
                     );
 
             return ResponseEntity.ok(

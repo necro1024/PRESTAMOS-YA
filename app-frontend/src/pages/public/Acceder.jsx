@@ -360,7 +360,7 @@ function Acceder() {
                             value={loginData.username}
                             onChange={handleLoginChange}
                             autoComplete="username"
-                            placeholder="correo@ejemplo.com o admin"
+                            placeholder="correo@ejemplo.com"
                             autoCapitalize="none"
                             spellCheck="false"
                             aria-invalid={Boolean(loginError)}
