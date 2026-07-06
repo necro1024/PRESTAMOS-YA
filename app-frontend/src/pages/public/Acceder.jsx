@@ -200,7 +200,7 @@ function Acceder() {
       navigate(
         response.rol === "ADMIN"
           ? "/admin/dashboard"
-          : "/solicitar"
+          : "/"
       )
     } catch (error) {
       console.error(error)

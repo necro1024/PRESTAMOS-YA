@@ -9,12 +9,14 @@ import GClientes from "../pages/admin/GClientes"
 import GPrestamos from "../pages/admin/GPrestamos"
 import GGarantias from "../pages/admin/GGarantias"
 import Auditorias from "../pages/admin/Auditorias"
+import GAcuerdos from "../pages/admin/GAcuerdos"
 
 import Home from "../pages/public/Home"
 import SolicitarPrestamo from "../pages/public/SolicitarPrestamo";
 import RegistroGarantia from "../pages/public/RegistroGarantia"
 import Acceder from "../pages/public/Acceder"
 import MisPrestamos from "../pages/client/MisPrestamos"
+import PrecalificarGarantia from "../pages/client/PrecalificarGarantia"
 import MiEstado from "../pages/MiEstado"
 import ProtectedRoute from "./ProtectedRoute"
 import HomeButton from "../components/common/HomeButton"
@@ -29,6 +31,14 @@ function AppRoutes() {
     element={
       <ProtectedRoute roles={["CLIENTE"]}>
         <MisPrestamos />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    path="/evaluar-garantia"
+    element={
+      <ProtectedRoute roles={["CLIENTE"]}>
+        <PrecalificarGarantia />
       </ProtectedRoute>
     }
   />
@@ -93,6 +103,14 @@ function AppRoutes() {
     element={
       <ProtectedRoute roles={["ADMIN"]}>
         <GGarantias />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    path="/admin/acuerdos"
+    element={
+      <ProtectedRoute roles={["ADMIN"]}>
+        <GAcuerdos />
       </ProtectedRoute>
     }
   />

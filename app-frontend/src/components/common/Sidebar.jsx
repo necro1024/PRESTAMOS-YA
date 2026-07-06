@@ -104,6 +104,22 @@ return (
         <li className="nav-item mt-2">
 
         <Link
+            to="/admin/acuerdos"
+            className={`nav-link text-white ${
+            location.pathname === "/admin/acuerdos"
+                ? "bg-primary rounded"
+                : ""
+            }`}
+        >
+            <i className="bi bi-file-earmark-pdf me-2"></i>
+            Acuerdos PDF
+        </Link>
+
+        </li>
+
+        <li className="nav-item mt-2">
+
+        <Link
             to="/admin/auditorias"
             className={`nav-link text-white ${
             location.pathname === "/admin/auditorias"

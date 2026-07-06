@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
 import { crearGarantia } from "../../services/garantiaService"
@@ -27,6 +27,35 @@ function RegistroGarantia() {
     comprobanteActivo: "",
     acepta: false
   })
+
+  useEffect(() => {
+    const precalificacion =
+      localStorage.getItem("precalificacionGarantia")
+
+    if (!precalificacion) {
+      return
+    }
+
+    try {
+      const datos = JSON.parse(precalificacion)
+
+      setForm((actual) => ({
+        ...actual,
+        tipo: datos.tipo || actual.tipo,
+        nombreActivo: datos.nombreActivo || actual.nombreActivo,
+        identificador: datos.identificador || actual.identificador,
+        correoTitular: datos.correoTitular || actual.correoTitular,
+        fechaInicio: datos.fechaInicio || actual.fechaInicio,
+        valorEstimado: datos.valorEstimado || actual.valorEstimado,
+        ingresosMensuales: datos.ingresosMensuales || actual.ingresosMensuales
+      }))
+
+      localStorage.removeItem("precalificacionGarantia")
+    } catch (error) {
+      console.error(error)
+      localStorage.removeItem("precalificacionGarantia")
+    }
+  }, [])
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target

@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { obtenerGarantiasPorPrestamo } from "../../services/garantiaService"
+import {
+  INTERES_BASE_ANUAL,
+  calcularDescuentoSeguridad,
+  formatearPorcentaje
+} from "../../utils/recompensaSeguridad"
 
 function ModalAuditoria({
   prestamo,
@@ -54,6 +59,10 @@ function ModalAuditoria({
   const scoreFinal = garantia?.puntuacion || 0
   const riesgo = garantia?.nivelRiesgo || "Pendiente"
   const recomendacion = garantia?.recomendacion || "Revisar"
+  const interesFinal =
+    Number(prestamo?.interesAnual || INTERES_BASE_ANUAL)
+  const descuentoSeguridad =
+    calcularDescuentoSeguridad(scoreFinal)
 
   const confirmarAuditoria = (estado = decision) => {
     if (!prestamo) return
@@ -126,6 +135,10 @@ function ModalAuditoria({
                       <Info label="Monto solicitado" value={`S/ ${prestamo.monto || 0}`} />
                       <Info label="Cuotas" value={prestamo.cuotas || 0} />
                       <Info
+                        label="Interes anual"
+                        value={formatearPorcentaje(interesFinal)}
+                      />
+                      <Info
                         label="Cuota mensual"
                         value={`S/ ${Number(prestamo.cuotaMensual || 0).toFixed(2)}`}
                       />
@@ -169,6 +182,9 @@ function ModalAuditoria({
                       </span>
                       <span className="badge bg-dark">
                         Recomendacion: {recomendacion}
+                      </span>
+                      <span className="badge bg-success">
+                        Descuento aplicado: {formatearPorcentaje(descuentoSeguridad)}
                       </span>
                     </div>
                   </div>

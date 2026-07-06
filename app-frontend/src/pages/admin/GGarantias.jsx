@@ -7,7 +7,6 @@ from "../../components/garantias/ModalEvaluacionActivoDigital"
 import {
   actualizarGarantia,
   eliminarGarantia,
-  evaluarGarantia,
   obtenerGarantias
 } from "../../services/garantiaService"
 
@@ -39,7 +38,7 @@ function GGarantias() {
 
   const aprobarGarantia = async (garantia) => {
     try {
-      await evaluarGarantia(garantia.id)
+      await actualizarGarantia(garantia.id, garantia)
       cargarGarantias()
     } catch (error) {
       console.error(error)

@@ -1,4 +1,10 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import {
+  INTERES_BASE_ANUAL,
+  calcularDescuentoSeguridad,
+  calcularInteresConRecompensa,
+  formatearPorcentaje
+} from "../../utils/recompensaSeguridad"
 
 function ModalEvaluacionActivoDigital({
   garantia,
@@ -7,6 +13,40 @@ function ModalEvaluacionActivoDigital({
   onRechazar
 }) {
   const [observaciones, setObservaciones] = useState("")
+  const [checks, setChecks] = useState({})
+
+  const gruposChecklist = useMemo(() => ({
+    general: [
+      ["titularIdentificado", "Titular identificado"],
+      ["correoVerificado", "Correo verificado"],
+      ["registroCompleto", "Registro completo"],
+      ["identidadValidada", "Identidad validada"]
+    ],
+    documentos: [
+      ["identificacionAdjunta", "Identificacion adjunta"],
+      ["documentacionValida", "Documentacion valida"],
+      ["historialAdjunto", "Historial adjunto"],
+      ["ingresosDemostrables", "Ingresos demostrables"],
+      ["activoDocumentado", "Activo documentado"]
+    ],
+    financiera: [
+      ["valorConsistente", "Valor consistente"],
+      ["ingresosVerificables", "Ingresos verificables"],
+      ["coberturaSuficiente", "Cobertura suficiente"],
+      ["historialAceptable", "Historial aceptable"]
+    ],
+    operacional: [
+      ["sinFraude", "Sin senales de fraude"],
+      ["informacionConsistente", "Informacion consistente"],
+      ["cumplePoliticas", "Cumple politicas internas"],
+      ["riesgoAceptable", "Riesgo aceptable"]
+    ]
+  }), [])
+
+  useEffect(() => {
+    setObservaciones("")
+    setChecks({})
+  }, [garantia?.id])
 
   const documentos = useMemo(() => ([
     {
@@ -31,21 +71,9 @@ function ModalEvaluacionActivoDigital({
     }
   ]), [garantia])
 
-  const checklist = useMemo(() => ([
-    Boolean(garantia?.prestamo?.cliente?.nombre),
-    Boolean(garantia?.correoTitular),
-    Boolean(garantia?.tipo && garantia?.identificador),
-    Boolean(garantia?.prestamo?.cliente?.dni),
-    ...documentos.map(documento => Boolean(documento.valor)),
-    Number(garantia?.valorEstimado || 0) > 0,
-    Number(garantia?.ingresosMensuales || 0) > 0,
-    Number(garantia?.valorEstimado || 0) >=
-      Number(garantia?.prestamo?.monto || 0),
-    Boolean(garantia?.historialCrediticio),
-    Boolean(garantia?.identificador),
-    Boolean(garantia?.nombreActivo),
-    Boolean(garantia?.tipo)
-  ]), [documentos, garantia])
+  const checklist = useMemo(() => (
+    Object.values(gruposChecklist).flat().map(([id]) => Boolean(checks[id]))
+  ), [checks, gruposChecklist])
 
   const itemsCumplidos = checklist.filter(Boolean).length
   const totalItems = checklist.length
@@ -56,6 +84,8 @@ function ModalEvaluacionActivoDigital({
     : score >= 65
       ? "SOLICITAR CORRECCIONES"
       : "RECHAZAR GARANTIA"
+  const descuentoSeguridad = calcularDescuentoSeguridad(score)
+  const interesFinal = calcularInteresConRecompensa(score)
 
   const antiguedad = garantia?.fechaInicio
     ? `${garantia.fechaInicio}`
@@ -71,6 +101,26 @@ function ModalEvaluacionActivoDigital({
     : riesgo === "Medio"
       ? "bg-warning text-dark"
       : "bg-danger"
+
+  const toggleCheck = (id) => {
+    setChecks({
+      ...checks,
+      [id]: !checks[id]
+    })
+  }
+
+  const garantiaEvaluada = (estado, recomendacionFinal) => ({
+    ...garantia,
+    estado,
+    puntuacion: score,
+    nivelRiesgo: riesgo,
+    recomendacion: recomendacionFinal,
+    resultadoEvaluacion:
+      `Evaluacion manual del administrador. Items cumplidos: `
+      + `${itemsCumplidos}/${totalItems}. Score: ${score}%. `
+      + `Riesgo: ${riesgo}. Observaciones: `
+      + `${observaciones || "Sin observaciones"}.`
+  })
 
   return (
     <div
@@ -134,12 +184,9 @@ function ModalEvaluacionActivoDigital({
                         </div>
 
                         <Checklist
-                          items={[
-                            ["Titular identificado", Boolean(garantia.prestamo?.cliente?.nombre)],
-                            ["Correo verificado", Boolean(garantia.correoTitular)],
-                            ["Registro completo", Boolean(garantia.tipo && garantia.identificador)],
-                            ["Identidad validada", Boolean(garantia.prestamo?.cliente?.dni)]
-                          ]}
+                          items={gruposChecklist.general}
+                          checked={checks}
+                          onToggle={toggleCheck}
                         />
                       </div>
                     </div>
@@ -198,13 +245,9 @@ function ModalEvaluacionActivoDigital({
                         </div>
 
                         <Checklist
-                          items={[
-                            ["Identificacion adjunta", Boolean(garantia.identificacionPersonal)],
-                            ["Documentacion valida", Boolean(garantia.documentacionPersonal)],
-                            ["Historial adjunto", Boolean(garantia.historialCrediticio)],
-                            ["Ingresos demostrables", Boolean(garantia.comprobantesIngresos)],
-                            ["Activo documentado", Boolean(garantia.comprobanteActivo)]
-                          ]}
+                          items={gruposChecklist.documentos}
+                          checked={checks}
+                          onToggle={toggleCheck}
                         />
                       </div>
                     </div>
@@ -235,12 +278,9 @@ function ModalEvaluacionActivoDigital({
                         </div>
 
                         <Checklist
-                          items={[
-                            ["Valor consistente", Number(garantia.valorEstimado || 0) > 0],
-                            ["Ingresos verificables", Number(garantia.ingresosMensuales || 0) > 0],
-                            ["Cobertura suficiente", Number(garantia.valorEstimado || 0) >= Number(garantia.prestamo?.monto || 0)],
-                            ["Historial aceptable", Boolean(garantia.historialCrediticio)]
-                          ]}
+                          items={gruposChecklist.financiera}
+                          checked={checks}
+                          onToggle={toggleCheck}
                         />
                       </div>
                     </div>
@@ -265,12 +305,9 @@ function ModalEvaluacionActivoDigital({
                     >
                       <div className="accordion-body">
                         <Checklist
-                          items={[
-                            ["Sin senales de fraude", Boolean(garantia.identificador)],
-                            ["Informacion consistente", Boolean(garantia.nombreActivo)],
-                            ["Cumple politicas internas", Boolean(garantia.tipo)],
-                            ["Riesgo aceptable", riesgo !== "Alto"]
-                          ]}
+                          items={gruposChecklist.operacional}
+                          checked={checks}
+                          onToggle={toggleCheck}
                         />
                       </div>
                     </div>
@@ -291,6 +328,15 @@ function ModalEvaluacionActivoDigital({
                       </span>
                       <span className="badge bg-dark">
                         Recomendacion: {recomendacion}
+                      </span>
+                      <span className="badge bg-secondary">
+                        Tasa base: {formatearPorcentaje(INTERES_BASE_ANUAL)}
+                      </span>
+                      <span className="badge bg-success">
+                        Descuento: {formatearPorcentaje(descuentoSeguridad)}
+                      </span>
+                      <span className="badge bg-primary">
+                        Tasa final: {formatearPorcentaje(interesFinal)}
                       </span>
                     </div>
                   </div>
@@ -332,7 +378,9 @@ function ModalEvaluacionActivoDigital({
               className="btn btn-success"
               data-bs-dismiss="modal"
               disabled={!garantia}
-              onClick={() => onAprobar(garantia)}
+              onClick={() => onAprobar(
+                garantiaEvaluada("Verificada", "Aprobar")
+              )}
             >
               Aprobar Garantia
             </button>
@@ -341,7 +389,9 @@ function ModalEvaluacionActivoDigital({
               className="btn btn-warning"
               data-bs-dismiss="modal"
               disabled={!garantia}
-              onClick={() => onSolicitarCorrecciones(garantia)}
+              onClick={() => onSolicitarCorrecciones(
+                garantiaEvaluada("Pendiente", "Solicitar correcciones")
+              )}
             >
               Solicitar Correcciones
             </button>
@@ -350,7 +400,9 @@ function ModalEvaluacionActivoDigital({
               className="btn btn-danger"
               data-bs-dismiss="modal"
               disabled={!garantia}
-              onClick={() => onRechazar(garantia)}
+              onClick={() => onRechazar(
+                garantiaEvaluada("Rechazada", "Rechazar")
+              )}
             >
               Rechazar Garantia
             </button>
@@ -374,17 +426,17 @@ function Info({ label, value }) {
   )
 }
 
-function Checklist({ items }) {
+function Checklist({ items, checked, onToggle }) {
   return (
     <div className="row g-2">
-      {items.map(([label, checked]) => (
-        <div className="col-md-6" key={label}>
+      {items.map(([id, label]) => (
+        <div className="col-md-6" key={id}>
           <div className="d-flex align-items-center gap-2">
             <input
               className="form-check-input mt-0"
               type="checkbox"
-              checked={checked}
-              readOnly
+              checked={Boolean(checked[id])}
+              onChange={() => onToggle(id)}
             />
             <span>{label}</span>
           </div>

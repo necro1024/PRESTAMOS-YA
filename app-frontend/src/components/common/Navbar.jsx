@@ -19,6 +19,37 @@ const autenticado =
 const usuario =
     obtenerUsuario()
 
+const seccionesHome = [
+    {
+        href: "/#como-funciona",
+        label: "Como funciona"
+    },
+    {
+        href: "/#servicios",
+        label: "Servicios financieros"
+    },
+    {
+        href: "/#evaluar-garantia",
+        label: "Evaluar garantia"
+    },
+    {
+        href: "/#estadisticas",
+        label: "Estadisticas"
+    },
+    {
+        href: "/#confianza",
+        label: "Centro de confianza"
+    },
+    {
+        href: "/#comparativa",
+        label: "Comparativa"
+    },
+    {
+        href: "/#preguntas",
+        label: "Preguntas frecuentes"
+    }
+]
+
 return (
 
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
@@ -62,7 +93,7 @@ return (
             <li className="nav-item">
 
             <a
-                href="#simulador"
+                href="/#simulador"
                 className="nav-link"
             >
 
@@ -75,11 +106,11 @@ return (
             <li className="nav-item">
 
             <a
-                href="#beneficios"
+                href="/#recompensa"
                 className="nav-link"
             >
 
-                Beneficios
+                Recompensa
 
             </a>
 
@@ -88,13 +119,49 @@ return (
             <li className="nav-item">
 
             <a
-                href="#garantias"
+                href="/#garantias"
                 className="nav-link"
             >
 
                 Garantías
 
             </a>
+
+            </li>
+
+            <li className="nav-item dropdown">
+
+              <button
+                className="nav-link dropdown-toggle btn btn-link"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+
+                Explorar
+
+              </button>
+
+              <ul className="dropdown-menu dropdown-menu-dark">
+
+                {seccionesHome.map((seccion) => (
+
+                  <li key={seccion.href}>
+
+                    <a
+                      className="dropdown-item"
+                      href={seccion.href}
+                    >
+
+                      {seccion.label}
+
+                    </a>
+
+                  </li>
+
+                ))}
+
+              </ul>
 
             </li>
 
@@ -109,6 +176,21 @@ return (
                 {usuario?.rol ===
                 "CLIENTE" && (
 
+                <>
+
+                <li className="nav-item">
+
+                    <Link
+                    to="/evaluar-garantia"
+                    className="btn btn-outline-info btn-sm ms-lg-3"
+                    >
+
+                    Evaluar garantia
+
+                    </Link>
+
+                  </li>
+
                 <li className="nav-item">
 
                     <Link
@@ -121,6 +203,8 @@ return (
                     </Link>
 
                   </li>
+
+                </>
 
                 )}
 

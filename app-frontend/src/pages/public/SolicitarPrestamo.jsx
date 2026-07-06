@@ -4,6 +4,12 @@ import { useNavigate } from "react-router-dom"
 import { obtenerUsuario, login } from "../../services/authService"
 import { crearCliente } from "../../services/clienteService"
 import { crearPrestamo } from "../../services/prestamoService"
+import {
+  DESCUENTO_MAXIMO_SEGURIDAD,
+  INTERES_BASE_ANUAL,
+  PUNTAJE_MINIMO_RECOMPENSA,
+  formatearPorcentaje
+} from "../../utils/recompensaSeguridad"
 
 function SolicitarPrestamo() {
   const navigate = useNavigate()
@@ -16,7 +22,7 @@ function SolicitarPrestamo() {
     telefono: usuario?.telefono || "",
     monto: 10000,
     cuotas: 12,
-    interesAnual: 18
+    interesAnual: INTERES_BASE_ANUAL
   })
 
   const resumen = useMemo(() => {
@@ -110,7 +116,7 @@ function SolicitarPrestamo() {
               </h1>
 
               <p className="text-muted mt-3">
-                Define el monto, plazo e interes antes de registrar
+                Define el monto y plazo antes de registrar
                 tu activo digital y documentos.
               </p>
             </div>
@@ -230,19 +236,33 @@ function SolicitarPrestamo() {
 
                         <div className="col-md-4">
                           <label className="form-label">
-                            Interes anual
+                            Interes anual base
                           </label>
 
                           <input
                             type="number"
                             name="interesAnual"
                             className="form-control"
-                            min="1"
-                            step="0.5"
                             value={form.interesAnual}
-                            onChange={handleChange}
-                            required
+                            readOnly
                           />
+                        </div>
+                      </div>
+
+                      <div className="alert alert-info border-0 mt-4 mb-0">
+                        <div className="d-flex gap-3">
+                          <i className="bi bi-shield-check fs-4"></i>
+                          <div>
+                            <strong>Recompensa por seguridad</strong>
+                            <p className="mb-0">
+                              Si tu garantia supera {PUNTAJE_MINIMO_RECOMPENSA}
+                              puntos de seguridad, tu interes anual baja de
+                              {" "}{formatearPorcentaje(INTERES_BASE_ANUAL)}
+                              {" "}hasta un maximo de
+                              {" "}{formatearPorcentaje(DESCUENTO_MAXIMO_SEGURIDAD)}
+                              {" "}de descuento.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -278,6 +298,29 @@ function SolicitarPrestamo() {
 
                           <h5 className="fw-bold mt-2">
                             {form.cuotas} cuotas
+                          </h5>
+                        </div>
+
+                        <div className="bg-secondary bg-opacity-25 rounded-4 p-3">
+                          <small className="text-light-emphasis">
+                            Interes base
+                          </small>
+
+                          <h5 className="fw-bold mt-2">
+                            {formatearPorcentaje(form.interesAnual)}
+                          </h5>
+                        </div>
+
+                        <div className="bg-success bg-opacity-25 rounded-4 p-3">
+                          <small className="text-light-emphasis">
+                            Beneficio posible
+                          </small>
+
+                          <h5 className="fw-bold mt-2">
+                            Hasta {" "}
+                            {formatearPorcentaje(
+                              INTERES_BASE_ANUAL - DESCUENTO_MAXIMO_SEGURIDAD
+                            )} anual
                           </h5>
                         </div>
                       </div>

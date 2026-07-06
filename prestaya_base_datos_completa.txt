@@ -96,13 +96,13 @@ CREATE TABLE prestamos (
 
     cuotas INT NOT NULL DEFAULT 12,
 
-    interes_anual DOUBLE NOT NULL DEFAULT 18,
+    interes_anual DOUBLE NOT NULL DEFAULT 15,
 
     cuota_mensual DOUBLE,
 
     total_pagar DOUBLE,
 
-    acuerdo_digital VARCHAR(2000),
+    acuerdo_digital LONGTEXT,
 
     estado_acuerdo VARCHAR(255) NOT NULL DEFAULT 'Pendiente',
 
@@ -288,10 +288,13 @@ VALUES (
 -- ============================================================
 -- PRESTAMO DEMO
 -- Monto: 5000
--- Interes anual: 18%
+-- Interes anual base: 15%
+-- Recompensa por score:
+-- 0-80 sin descuento. Desde 81 puntos, el descuento
+-- aumenta progresivamente hasta un maximo de 5%.
 -- Plazo: 12 cuotas
--- Total: 5900
--- Cuota mensual: 491.67
+-- Total: 5750
+-- Cuota mensual: 479.17
 -- ============================================================
 
 INSERT INTO prestamos (
@@ -312,9 +315,9 @@ VALUES (
     'Canal YouTube',
     'Pendiente',
     12,
-    18,
-    491.6666666667,
-    5900,
+    15,
+    479.1666666667,
+    5750,
     NULL,
     'Pendiente',
     NULL,

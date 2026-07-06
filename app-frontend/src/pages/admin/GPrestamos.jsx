@@ -58,6 +58,28 @@ function GPrestamos() {
     return "badge bg-warning text-dark"
   }
 
+  const descargarAcuerdo = (prestamo) => {
+    if (!prestamo.acuerdoDigital) return
+
+    try {
+      const acuerdo = JSON.parse(prestamo.acuerdoDigital)
+      const dataUrl = acuerdo.archivo?.dataUrl
+      const nombre =
+        acuerdo.archivo?.nombre ||
+        `acuerdo-prestamo-${prestamo.id}.pdf`
+
+      if (!dataUrl) return
+
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = nombre
+      link.click()
+    } catch (error) {
+      console.error(error)
+      alert("No se pudo descargar el acuerdo digital")
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -113,9 +135,22 @@ function GPrestamos() {
                     <td>
                       {prestamo.estadoAcuerdo === "Firmado"
                         ? (
-                          <span className="badge bg-primary">
-                            Firmado
-                          </span>
+                          <div className="d-flex flex-column align-items-start gap-2">
+                            <span className="badge bg-primary">
+                              Firmado
+                            </span>
+
+                            {prestamo.acuerdoDigital && (
+                              <button
+                                type="button"
+                                className="btn btn-outline-primary btn-sm"
+                                onClick={() => descargarAcuerdo(prestamo)}
+                              >
+                                <i className="bi bi-download me-1"></i>
+                                Descargar
+                              </button>
+                            )}
+                          </div>
                         )
                         : "Pendiente"}
                     </td>

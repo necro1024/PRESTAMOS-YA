@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 
+import api from "../services/api";
+
 function Prestamos() {
 
     const [prestamos, setPrestamos] = useState([]);
 
     useEffect(() => {
 
-        fetch("http://localhost:8080/api/prestamos")
-            .then((response) => response.json())
-            .then((data) => setPrestamos(data));
+        api.get("/prestamos")
+            .then((response) => setPrestamos(response.data));
 
     }, []);
 

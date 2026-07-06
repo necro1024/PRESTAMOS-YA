@@ -30,7 +30,8 @@ public class Prestamo {
 
     private Double totalPagar;
 
-    @Column(length = 2000)
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String acuerdoDigital;
 
     private String estadoAcuerdo;

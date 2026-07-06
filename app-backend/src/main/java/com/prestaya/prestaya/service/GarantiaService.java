@@ -12,11 +12,14 @@ import java.util.List;
 public class GarantiaService {
 
     private final GarantiaRepository repository;
+    private final PrestamoService prestamoService;
 
     public GarantiaService(
-            GarantiaRepository repository) {
+            GarantiaRepository repository,
+            PrestamoService prestamoService) {
 
         this.repository = repository;
+        this.prestamoService = prestamoService;
     }
 
     public List<Garantia> listar() {
@@ -98,6 +101,13 @@ public class GarantiaService {
                 actualizada.getResultadoEvaluacion());
 
         prepararGarantia(garantia);
+
+        if (garantia.getPuntuacion() != null) {
+            prestamoService.aplicarRecompensaSeguridad(
+                    garantia.getPrestamo(),
+                    garantia.getPuntuacion());
+        }
+
         return repository.save(garantia);
     }
 
@@ -167,7 +177,19 @@ public class GarantiaService {
         garantia.setResultadoEvaluacion(
                 "Score generado con validacion de identidad, "
                 + "documentos, ingresos, historial y cobertura "
-                + "del activo digital.");
+                + "del activo digital. Tasa base: "
+                + PrestamoService.INTERES_BASE_ANUAL
+                + "%. Descuento por seguridad: "
+                + prestamoService.calcularDescuentoPorSeguridad(
+                        puntuacion)
+                + "%. Tasa final estimada: "
+                + prestamoService.calcularInteresConRecompensa(
+                        puntuacion)
+                + "%.");
+
+        prestamoService.aplicarRecompensaSeguridad(
+                garantia.getPrestamo(),
+                puntuacion);
 
         return repository.save(garantia);
     }

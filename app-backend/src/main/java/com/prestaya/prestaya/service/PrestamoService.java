@@ -12,6 +12,10 @@ import java.util.List;
 @Service
 public class PrestamoService {
 
+    public static final double INTERES_BASE_ANUAL = 15.0;
+    public static final double DESCUENTO_MAXIMO_SEGURIDAD = 5.0;
+    public static final int PUNTAJE_MINIMO_RECOMPENSA = 80;
+
     private final PrestamoRepository repository;
 
     public PrestamoService(PrestamoRepository repository) {
@@ -27,8 +31,51 @@ public class PrestamoService {
     }
 
     public Prestamo guardar(Prestamo prestamo) {
+        prestamo.setInteresAnual(INTERES_BASE_ANUAL);
         prepararPrestamo(prestamo);
         return repository.save(prestamo);
+    }
+
+    public Prestamo aplicarRecompensaSeguridad(
+            Prestamo prestamo,
+            Integer puntuacionSeguridad) {
+
+        if (prestamo == null) {
+            return null;
+        }
+
+        prestamo.setInteresAnual(
+                calcularInteresConRecompensa(
+                        puntuacionSeguridad));
+
+        prepararPrestamo(prestamo);
+        return repository.save(prestamo);
+    }
+
+    public double calcularInteresConRecompensa(
+            Integer puntuacionSeguridad) {
+
+        return INTERES_BASE_ANUAL
+                - calcularDescuentoPorSeguridad(
+                        puntuacionSeguridad);
+    }
+
+    public double calcularDescuentoPorSeguridad(
+            Integer puntuacionSeguridad) {
+
+        if (puntuacionSeguridad == null
+                || puntuacionSeguridad <= PUNTAJE_MINIMO_RECOMPENSA) {
+            return 0.0;
+        }
+
+        double descuento =
+                (puntuacionSeguridad - PUNTAJE_MINIMO_RECOMPENSA)
+                * (DESCUENTO_MAXIMO_SEGURIDAD
+                / (100.0 - PUNTAJE_MINIMO_RECOMPENSA));
+
+        return Math.min(
+                DESCUENTO_MAXIMO_SEGURIDAD,
+                descuento);
     }
 
     public Prestamo actualizar(
@@ -91,7 +138,7 @@ public class PrestamoService {
         }
 
         if (prestamo.getInteresAnual() == null) {
-            prestamo.setInteresAnual(18.0);
+            prestamo.setInteresAnual(INTERES_BASE_ANUAL);
         }
 
         if (prestamo.getCuotas() == null
