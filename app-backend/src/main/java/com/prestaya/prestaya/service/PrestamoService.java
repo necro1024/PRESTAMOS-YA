@@ -90,6 +90,9 @@ public class PrestamoService {
         }
 
         prestamo.setMonto(actualizado.getMonto());
+        prestamo.setMoneda(actualizado.getMoneda());
+        prestamo.setTipoCambioUsdPen(actualizado.getTipoCambioUsdPen());
+        prestamo.setMontoEnSoles(actualizado.getMontoEnSoles());
         prestamo.setGarantia(actualizado.getGarantia());
         prestamo.setEstado(actualizado.getEstado());
         prestamo.setCuotas(actualizado.getCuotas());
@@ -126,6 +129,35 @@ public class PrestamoService {
     }
 
     private void prepararPrestamo(Prestamo prestamo) {
+
+        if (prestamo.getMoneda() == null
+                || prestamo.getMoneda().isBlank()) {
+            prestamo.setMoneda("PEN");
+        } else {
+            prestamo.setMoneda(
+                    prestamo.getMoneda().trim().toUpperCase());
+        }
+
+        if (prestamo.getMonto() != null) {
+            if ("USD".equals(prestamo.getMoneda())) {
+                double tipoCambio =
+                        prestamo.getTipoCambioUsdPen() != null
+                        && prestamo.getTipoCambioUsdPen() > 0
+                                ? prestamo.getTipoCambioUsdPen()
+                                : 3.75;
+
+                prestamo.setTipoCambioUsdPen(tipoCambio);
+                prestamo.setMontoEnSoles(
+                        prestamo.getMonto() * tipoCambio);
+            } else {
+                prestamo.setTipoCambioUsdPen(
+                        prestamo.getTipoCambioUsdPen() != null
+                        && prestamo.getTipoCambioUsdPen() > 0
+                                ? prestamo.getTipoCambioUsdPen()
+                                : 1.0);
+                prestamo.setMontoEnSoles(prestamo.getMonto());
+            }
+        }
 
         if (prestamo.getEstado() == null
                 || prestamo.getEstado().isBlank()) {

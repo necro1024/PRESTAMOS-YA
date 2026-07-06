@@ -90,6 +90,12 @@ CREATE TABLE prestamos (
 
     monto DOUBLE NOT NULL,
 
+    moneda VARCHAR(3) NOT NULL DEFAULT 'PEN',
+
+    tipo_cambio_usd_pen DOUBLE NOT NULL DEFAULT 1,
+
+    monto_en_soles DOUBLE,
+
     garantia VARCHAR(255),
 
     estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
@@ -299,6 +305,9 @@ VALUES (
 
 INSERT INTO prestamos (
     monto,
+    moneda,
+    tipo_cambio_usd_pen,
+    monto_en_soles,
     garantia,
     estado,
     cuotas,
@@ -311,6 +320,9 @@ INSERT INTO prestamos (
     cliente_id
 )
 VALUES (
+    5000,
+    'PEN',
+    1,
     5000,
     'Canal YouTube',
     'Pendiente',

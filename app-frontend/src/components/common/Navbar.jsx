@@ -21,6 +21,10 @@ const usuario =
 
 const seccionesHome = [
     {
+        href: "/#tipo-cambio",
+        label: "Tipo de cambio"
+    },
+    {
         href: "/#como-funciona",
         label: "Como funciona"
     },

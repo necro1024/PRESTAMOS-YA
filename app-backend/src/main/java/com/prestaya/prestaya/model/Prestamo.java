@@ -18,6 +18,12 @@ public class Prestamo {
 
     private Double monto;
 
+    private String moneda;
+
+    private Double tipoCambioUsdPen;
+
+    private Double montoEnSoles;
+
     private String garantia;
 
     private String estado;
@@ -52,6 +58,9 @@ private List<Garantia> garantias;
     public Prestamo(
             Long id,
             Double monto,
+            String moneda,
+            Double tipoCambioUsdPen,
+            Double montoEnSoles,
             String garantia,
             String estado,
             Integer cuotas,
@@ -62,6 +71,9 @@ private List<Garantia> garantias;
 
         this.id = id;
         this.monto = monto;
+        this.moneda = moneda;
+        this.tipoCambioUsdPen = tipoCambioUsdPen;
+        this.montoEnSoles = montoEnSoles;
         this.garantia = garantia;
         this.estado = estado;
         this.cuotas = cuotas;
@@ -85,6 +97,30 @@ private List<Garantia> garantias;
 
     public void setMonto(Double monto) {
         this.monto = monto;
+    }
+
+    public String getMoneda() {
+        return moneda;
+    }
+
+    public void setMoneda(String moneda) {
+        this.moneda = moneda;
+    }
+
+    public Double getTipoCambioUsdPen() {
+        return tipoCambioUsdPen;
+    }
+
+    public void setTipoCambioUsdPen(Double tipoCambioUsdPen) {
+        this.tipoCambioUsdPen = tipoCambioUsdPen;
+    }
+
+    public Double getMontoEnSoles() {
+        return montoEnSoles;
+    }
+
+    public void setMontoEnSoles(Double montoEnSoles) {
+        this.montoEnSoles = montoEnSoles;
     }
 
     public String getGarantia() {

@@ -1,8 +1,14 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 
 import { estaAutenticado } from "../../services/authService"
+import { obtenerTipoCambioUsdPen } from "../../services/tipoCambioService"
 import Navbar from "../../components/common/Navbar"
+import {
+  MONEDAS_PRESTAMO,
+  calcularMontoEnSoles,
+  formatearMoneda
+} from "../../utils/moneda"
 import {
   DESCUENTO_MAXIMO_SEGURIDAD,
   INTERES_BASE_ANUAL,
@@ -86,6 +92,8 @@ const confianza = [
   "Acceso por roles"
 ]
 
+const TIPO_CAMBIO_REFERENCIAL = 3.75
+
 const garantiasAceptadas = [
   {
     nombre: "YouTube",
@@ -153,8 +161,40 @@ function Home() {
   const rutaEvaluarGarantia = autenticado ? "/evaluar-garantia" : "/acceder"
 
   const [monto, setMonto] = useState(10000)
+  const [moneda, setMoneda] = useState("PEN")
   const [meses, setMeses] = useState(12)
   const [scoreSeguridad, setScoreSeguridad] = useState(85)
+  const [tipoCambio, setTipoCambio] = useState({
+    tasa: TIPO_CAMBIO_REFERENCIAL,
+    fuente: "Tasa referencial local",
+    configurado: false,
+    fechaActualizacion: ""
+  })
+
+  useEffect(() => {
+    const cargarTipoCambio = async () => {
+      try {
+        const data = await obtenerTipoCambioUsdPen()
+
+        setTipoCambio({
+          tasa: Number(data.tasa || TIPO_CAMBIO_REFERENCIAL),
+          fuente: data.fuente || "ExchangeRate-API",
+          configurado: Boolean(data.configurado),
+          fechaActualizacion: data.fechaActualizacion || ""
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    cargarTipoCambio()
+  }, [])
+
+  const montoEnSoles = calcularMontoEnSoles({
+    monto,
+    moneda,
+    tipoCambioUsdPen: tipoCambio.tasa
+  })
 
   const descuentoSeguridad =
     calcularDescuentoSeguridad(scoreSeguridad)
@@ -164,6 +204,12 @@ function Home() {
 
   const total =
     monto + (monto * (interesFinal / 100) * (meses / 12))
+
+  const totalEnSoles = calcularMontoEnSoles({
+    monto: total,
+    moneda,
+    tipoCambioUsdPen: tipoCambio.tasa
+  })
 
   const cuota = total / meses
 
@@ -265,11 +311,30 @@ function Home() {
 
                   <div className="mb-4">
                     <label className="form-label fw-semibold">
+                      Moneda del prestamo
+                    </label>
+
+                    <div className="btn-group w-100 mb-4" role="group">
+                      {MONEDAS_PRESTAMO.map((item) => (
+                        <button
+                          key={item.codigo}
+                          type="button"
+                          className={moneda === item.codigo
+                            ? "btn btn-primary"
+                            : "btn btn-outline-primary"}
+                          onClick={() => setMoneda(item.codigo)}
+                        >
+                          {item.nombre}
+                        </button>
+                      ))}
+                    </div>
+
+                    <label className="form-label fw-semibold">
                       Monto solicitado
                     </label>
 
                     <h3 className="text-primary fw-bold mb-3">
-                      S/ {monto.toLocaleString("es-PE")}
+                      {formatearMoneda(monto, moneda)}
                     </h3>
 
                     <input
@@ -281,6 +346,13 @@ function Home() {
                       value={monto}
                       onChange={(e) => setMonto(Number(e.target.value))}
                     />
+
+                    {moneda === "USD" && (
+                      <div className="form-text">
+                        Equivalente aproximado:
+                        {" "}{formatearMoneda(montoEnSoles, "PEN")}
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-4">
@@ -342,14 +414,22 @@ function Home() {
                   </span>
 
                   <h2 className="display-3 fw-bold text-info mb-4">
-                    S/ {cuota.toFixed(2)}
+                    {formatearMoneda(cuota, moneda)}
                   </h2>
 
                   <div className="row g-3">
-                    <ResultMetric label="Monto" value={`S/ ${monto.toLocaleString("es-PE")}`} />
-                    <ResultMetric label="Total" value={`S/ ${total.toFixed(2)}`} />
+                    <ResultMetric label="Monto" value={formatearMoneda(monto, moneda)} />
+                    <ResultMetric label="Total" value={formatearMoneda(total, moneda)} />
                     <ResultMetric label="Interes final" value={formatearPorcentaje(interesFinal)} />
                   </div>
+
+                  {moneda === "USD" && (
+                    <div className="alert alert-light border-0 mt-4 mb-0">
+                      <strong>Equivalente en soles:</strong>
+                      {" "}{formatearMoneda(totalEnSoles, "PEN")} total aproximado
+                      con tipo de cambio USD/PEN {Number(tipoCambio.tasa || 0).toFixed(4)}.
+                    </div>
+                  )}
 
                   <div className="alert alert-info border-0 mt-4 mb-0">
                     <strong>Programa de recompensa:</strong>
@@ -364,6 +444,34 @@ function Home() {
                   </Link>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tipo-cambio" className="py-4 bg-white border-bottom">
+        <div className="container">
+          <div className="row align-items-center g-3">
+            <div className="col-lg-7">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: 52, height: 52 }}>
+                  <i className="bi bi-currency-exchange fs-4"></i>
+                </div>
+                <div>
+                  <h5 className="fw-bold mb-1">
+                    Tipo de cambio
+                  </h5>
+                  <p className="text-muted mb-0">
+                    Referencia para prestamos solicitados en dolares.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-5 text-lg-end">
+              <span className="badge bg-dark fs-6 px-3 py-2">
+                1 USD = S/ {Number(tipoCambio.tasa || 0).toFixed(4)}
+              </span>
             </div>
           </div>
         </div>

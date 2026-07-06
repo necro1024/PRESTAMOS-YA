@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import AdminLayout from "../../layouts/AdminLayout"
 import ModalAuditoria from "../../components/prestamos/ModalAuditoria"
+import { formatearMoneda } from "../../utils/moneda"
 
 import {
   actualizarPrestamo,
@@ -118,12 +119,24 @@ function GPrestamos() {
 
                     <td>{prestamo.cliente?.nombre}</td>
 
-                    <td>S/ {prestamo.monto}</td>
+                    <td>
+                      <div className="fw-semibold">
+                        {formatearMoneda(prestamo.monto, prestamo.moneda)}
+                      </div>
+                      {prestamo.moneda === "USD" && (
+                        <small className="text-muted">
+                          Eq. {formatearMoneda(prestamo.montoEnSoles, "PEN")}
+                        </small>
+                      )}
+                    </td>
 
                     <td>{prestamo.cuotas}</td>
 
                     <td>
-                      S/ {Number(prestamo.cuotaMensual || 0).toFixed(2)}
+                      {formatearMoneda(
+                        prestamo.cuotaMensual,
+                        prestamo.moneda
+                      )}
                     </td>
 
                     <td>

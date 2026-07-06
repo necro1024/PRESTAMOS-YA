@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { obtenerGarantiasPorPrestamo } from "../../services/garantiaService"
+import { formatearMoneda } from "../../utils/moneda"
 import {
   INTERES_BASE_ANUAL,
   calcularDescuentoSeguridad,
@@ -50,7 +51,9 @@ function ModalAuditoria({
 
   const cobertura = useMemo(() => {
     const valor = Number(garantia?.valorEstimado || 0)
-    const monto = Number(prestamo?.monto || 0)
+    const monto = Number(
+      prestamo?.montoEnSoles || prestamo?.monto || 0
+    )
 
     if (!valor || !monto) return 0
     return Math.round((valor / monto) * 100)
@@ -132,7 +135,20 @@ function ModalAuditoria({
                     <div className="row g-3">
                       <Info label="Valor de la garantia" value={`S/ ${garantia?.valorEstimado || 0}`} />
                       <Info label="Ingresos mensuales" value={`S/ ${garantia?.ingresosMensuales || 0}`} />
-                      <Info label="Monto solicitado" value={`S/ ${prestamo.monto || 0}`} />
+                      <Info
+                        label="Monto solicitado"
+                        value={formatearMoneda(prestamo.monto, prestamo.moneda)}
+                      />
+                      <Info
+                        label="Equivalente en soles"
+                        value={formatearMoneda(prestamo.montoEnSoles || prestamo.monto, "PEN")}
+                      />
+                      <Info
+                        label="Tipo de cambio"
+                        value={prestamo.moneda === "USD"
+                          ? `USD/PEN ${Number(prestamo.tipoCambioUsdPen || 0).toFixed(4)}`
+                          : "No aplica"}
+                      />
                       <Info label="Cuotas" value={prestamo.cuotas || 0} />
                       <Info
                         label="Interes anual"
@@ -140,7 +156,7 @@ function ModalAuditoria({
                       />
                       <Info
                         label="Cuota mensual"
-                        value={`S/ ${Number(prestamo.cuotaMensual || 0).toFixed(2)}`}
+                        value={formatearMoneda(prestamo.cuotaMensual, prestamo.moneda)}
                       />
                     </div>
                   </div>

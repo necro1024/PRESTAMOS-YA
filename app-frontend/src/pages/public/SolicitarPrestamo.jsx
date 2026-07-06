@@ -1,15 +1,23 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { obtenerUsuario, login } from "../../services/authService"
 import { crearCliente } from "../../services/clienteService"
 import { crearPrestamo } from "../../services/prestamoService"
+import { obtenerTipoCambioUsdPen } from "../../services/tipoCambioService"
+import {
+  MONEDAS_PRESTAMO,
+  calcularMontoEnSoles,
+  formatearMoneda
+} from "../../utils/moneda"
 import {
   DESCUENTO_MAXIMO_SEGURIDAD,
   INTERES_BASE_ANUAL,
   PUNTAJE_MINIMO_RECOMPENSA,
   formatearPorcentaje
 } from "../../utils/recompensaSeguridad"
+
+const TIPO_CAMBIO_REFERENCIAL = 3.75
 
 function SolicitarPrestamo() {
   const navigate = useNavigate()
@@ -20,10 +28,34 @@ function SolicitarPrestamo() {
     dni: usuario?.dni || "",
     correo: usuario?.correo || "",
     telefono: usuario?.telefono || "",
+    moneda: "PEN",
     monto: 10000,
     cuotas: 12,
     interesAnual: INTERES_BASE_ANUAL
   })
+  const [tipoCambio, setTipoCambio] = useState({
+    tasa: TIPO_CAMBIO_REFERENCIAL,
+    fuente: "Tasa referencial local",
+    configurado: false
+  })
+
+  useEffect(() => {
+    const cargarTipoCambio = async () => {
+      try {
+        const data = await obtenerTipoCambioUsdPen()
+
+        setTipoCambio({
+          tasa: Number(data.tasa || TIPO_CAMBIO_REFERENCIAL),
+          fuente: data.fuente || "ExchangeRate-API",
+          configurado: Boolean(data.configurado)
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    cargarTipoCambio()
+  }, [])
 
   const resumen = useMemo(() => {
     const monto = Number(form.monto)
@@ -34,9 +66,24 @@ function SolicitarPrestamo() {
 
     return {
       total,
-      cuotaMensual: total / cuotas
+      cuotaMensual: total / cuotas,
+      montoEnSoles: calcularMontoEnSoles({
+        monto,
+        moneda: form.moneda,
+        tipoCambioUsdPen: tipoCambio.tasa
+      }),
+      totalEnSoles: calcularMontoEnSoles({
+        monto: total,
+        moneda: form.moneda,
+        tipoCambioUsdPen: tipoCambio.tasa
+      }),
+      cuotaMensualEnSoles: calcularMontoEnSoles({
+        monto: total / cuotas,
+        moneda: form.moneda,
+        tipoCambioUsdPen: tipoCambio.tasa
+      })
     }
-  }, [form])
+  }, [form, tipoCambio.tasa])
 
   const handleChange = (e) => {
     setForm({
@@ -78,6 +125,9 @@ function SolicitarPrestamo() {
       const clienteId = await obtenerClienteId()
       const prestamo = await crearPrestamo({
         monto: Number(form.monto),
+        moneda: form.moneda,
+        tipoCambioUsdPen: Number(tipoCambio.tasa),
+        montoEnSoles: resumen.montoEnSoles,
         garantia: "Activo digital pendiente",
         estado: "Pendiente",
         cuotas: Number(form.cuotas),
@@ -199,6 +249,36 @@ function SolicitarPrestamo() {
                       </h3>
 
                       <div className="row g-3">
+                        <div className="col-md-12">
+                          <label className="form-label">
+                            Moneda del prestamo
+                          </label>
+
+                          <div className="btn-group w-100" role="group">
+                            {MONEDAS_PRESTAMO.map((item) => (
+                              <button
+                                key={item.codigo}
+                                type="button"
+                                className={form.moneda === item.codigo
+                                  ? "btn btn-primary"
+                                  : "btn btn-outline-primary"}
+                                onClick={() => setForm({
+                                  ...form,
+                                  moneda: item.codigo
+                                })}
+                              >
+                                {item.nombre}
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="form-text">
+                            Tipo de cambio USD/PEN:
+                            {" "}S/ {Number(tipoCambio.tasa || 0).toFixed(4)}
+                            {" "}({tipoCambio.fuente})
+                          </div>
+                        </div>
+
                         <div className="col-md-4">
                           <label className="form-label">
                             Monto solicitado
@@ -214,6 +294,13 @@ function SolicitarPrestamo() {
                             onChange={handleChange}
                             required
                           />
+
+                          {form.moneda === "USD" && (
+                            <div className="form-text">
+                              Equivalente:
+                              {" "}{formatearMoneda(resumen.montoEnSoles, "PEN")}
+                            </div>
+                          )}
                         </div>
 
                         <div className="col-md-4">
@@ -277,7 +364,7 @@ function SolicitarPrestamo() {
                       </span>
 
                       <h1 className="display-4 fw-bold text-info mb-4">
-                        S/ {resumen.cuotaMensual.toFixed(2)}
+                        {formatearMoneda(resumen.cuotaMensual, form.moneda)}
                       </h1>
 
                       <div className="d-grid gap-3">
@@ -287,9 +374,21 @@ function SolicitarPrestamo() {
                           </small>
 
                           <h5 className="fw-bold mt-2">
-                            S/ {resumen.total.toFixed(2)}
+                            {formatearMoneda(resumen.total, form.moneda)}
                           </h5>
                         </div>
+
+                        {form.moneda === "USD" && (
+                          <div className="bg-secondary bg-opacity-25 rounded-4 p-3">
+                            <small className="text-light-emphasis">
+                              Total equivalente en soles
+                            </small>
+
+                            <h5 className="fw-bold mt-2">
+                              {formatearMoneda(resumen.totalEnSoles, "PEN")}
+                            </h5>
+                          </div>
+                        )}
 
                         <div className="bg-secondary bg-opacity-25 rounded-4 p-3">
                           <small className="text-light-emphasis">
