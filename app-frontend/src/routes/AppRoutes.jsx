@@ -23,7 +23,7 @@ import HomeButton from "../components/common/HomeButton"
 
 function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
 <HomeButton />
 <Routes>
   <Route

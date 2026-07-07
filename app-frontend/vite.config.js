@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL('.', import.meta.url))
 
 export default defineConfig({
   root,
-  base: '/PRESTAMOS-YA/app-frontend/',
+  base: '/PRESTAMOS-YA/',
   plugins: [react()],
   build: {
     rollupOptions: {
