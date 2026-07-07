@@ -48,6 +48,9 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                    "/",
+                    "/favicon.ico",
+                    "/api/health",
                     "/api/auth/login",
                     "/api/auth/register",
                     "/api/tipo-cambio/**"
