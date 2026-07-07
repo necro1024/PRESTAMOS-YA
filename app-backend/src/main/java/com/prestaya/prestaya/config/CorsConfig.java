@@ -17,7 +17,10 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
 
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173","https://necro1024.github.io")
+                        .allowedOrigins(
+                                "http://localhost:5173",
+                                "https://necro1024.github.io"
+                        )
                         .allowedMethods("*")
                         .allowedHeaders("*");
             }

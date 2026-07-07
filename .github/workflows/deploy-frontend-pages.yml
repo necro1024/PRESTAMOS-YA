@@ -37,6 +37,8 @@ jobs:
       - name: Build frontend
         run: npm run build
         working-directory: app-frontend
+        env:
+          VITE_API_URL: https://prestamos-ya-production.up.railway.app/api
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
